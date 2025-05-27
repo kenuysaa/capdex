@@ -1,4 +1,13 @@
-val googleMapsApiKey: String = project.findProperty("googleMapsKey") as? String ?: ""
+import java.util.Properties
+
+val localPropertiesFile = rootProject.file("local.properties")
+val localProperties = Properties()
+
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.inputStream().use { stream ->
+        localProperties.load(stream)
+    }
+}
 
 plugins {
     alias(libs.plugins.android.application)
@@ -22,8 +31,8 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // Add the Google Maps API key to the manifest
-        manifestPlaceholders["googleMapsKey"] = googleMapsApiKey
+        val mapsApiKey = localProperties.getProperty("googleMapsApiKey") ?: ""
+        manifestPlaceholders["com.google.android.geo.API_KEY"] = mapsApiKey
     }
 
     buildTypes {
