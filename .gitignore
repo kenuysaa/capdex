@@ -1,28 +1,48 @@
 # Android Studio
 .idea/
+*.iml
+*.ipr
+*.iws
+
+# Gradle
 .gradle/
 local.properties
-*.iml
+gradle-wrapper.properties
+**/build/
 
-# Build
-/build/
-*/build/
+# Firebase / Google Services
+app/google-services.json
 
-# Captures e artefatos nativos
+# Build / Captures / Artefatos Nativos
 /captures/
 .externalNativeBuild/
 .cxx/
 
+# Navegação e Cache
+.navigation/
+.cache/
+*.cache
+
+# Logs e Temporários
+*.log
+*.tmp
+*.temp
+*.bak
+*.swp
+
+# Keystore files (NUNCA versionar)
+*.jks
+*.keystore
+
+# Arquivos de sistema
 # macOS
 .DS_Store
 
-# Google Services
-app/google-services.json
-
-# Linux executáveis
-*.out
-
-# Windows executáveis
+# Windows
 *.exe
 *.bat
+Thumbs.db
 desktop.ini
+
+# Linux
+*.out

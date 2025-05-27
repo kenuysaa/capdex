@@ -1,12 +1,21 @@
+import java.util.Properties
+
+val localPropertiesFile = rootProject.file("local.properties")
+val localProperties = Properties()
+
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.inputStream().use { stream ->
+        localProperties.load(stream)
+    }
+}
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-
-    // id("com.android.application")
-    // estava dando erro de duplicação por causa da linha ("com.android.application")
-    // Add the Google services Gradle plugin
-    id("com.google.gms.google-services")
+    id("com.google.gms.google-services") // Add the Google services Gradle plugin
+    id("com.google.dagger.hilt.android") // Add the Hilt plugin
+    id("com.google.devtools.ksp") // Add the KSP plugin
 }
 
 android {
@@ -21,6 +30,9 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        val mapsApiKey = localProperties.getProperty("googleMapsApiKey") ?: ""
+        manifestPlaceholders["com.google.android.geo.API_KEY"] = mapsApiKey
     }
 
     buildTypes {
@@ -45,7 +57,6 @@ android {
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -54,6 +65,8 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.core.testing)
+    implementation(libs.androidx.room.runtime.android)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -61,14 +74,29 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    implementation("androidx.navigation:navigation-compose:2.7.7")
+    implementation ("androidx.compose.material:material-icons-extended:1.4.3")
+    implementation("com.google.android.gms:play-services-maps:18.2.0")
+
+
+    // Hilt dependencies
+    implementation("com.google.dagger:hilt-android:2.56.2")
+    ksp("com.google.dagger:hilt-android-compiler:2.56.2")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0") // Compose
+
+    // Google Maps
+    implementation("com.google.maps.android:maps-compose:2.15.0")
+    implementation("com.google.android.gms:play-services-maps:18.2.0")
+
+    implementation(libs.play.services.location)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.storage.ktx)
 
     // Import the Firebase BoM
-    implementation(platform("com.google.firebase:firebase-bom:33.13.0"))
-
-    // TODO: Add the dependencies for Firebase products you want to use
-    // When using the BoM, don't specify versions in Firebase dependencies
-    implementation("com.google.firebase:firebase-analytics")
-
+    implementation(platform("com.google.firebase:firebase-bom:33.14.0"))
     // Add the dependencies for any other desired Firebase products
     // https://firebase.google.com/docs/android/setup#available-libraries
+    implementation("com.google.firebase:firebase-analytics")
+    implementation(libs.firebase.auth.ktx)
+    implementation(libs.firebase.firestore.ktx)
 }
