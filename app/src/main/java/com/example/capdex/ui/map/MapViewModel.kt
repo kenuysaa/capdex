@@ -7,42 +7,58 @@ import com.example.capdex.location.LocationService
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 class MapViewModel(application: Application) : AndroidViewModel(application) {
     private val _currentLocation = MutableStateFlow<LatLng?>(null)
     val currentLocation: StateFlow<LatLng?> = _currentLocation
 
-    // Mantém a instância do LocationService
-    private var locationService: LocationService? = null
+    private val _locationPermissionGranted = MutableStateFlow(false)
+    val locationPermissionGranted: StateFlow<Boolean> = _locationPermissionGranted.asStateFlow()
 
-    // Flag para controlar a inicialização
-    private var isLocationServiceInitialized = false
+    private var locationService: LocationService? = null // Mantém a instância do LocationService
 
-    fun initializeLocationServiceIfNeeded() {
-        // Inicializa apenas uma vez e se as permissões estiverem (presumivelmente) concedidas
-        // A verificação de permissão real é feita antes de chamar startLocationUpdates no LocationService
-        if (!isLocationServiceInitialized) {
-            locationService = LocationService(getApplication<Application>().applicationContext).apply {
-                setOnLocationUpdateListener { location ->
-                    updateLocation(location)
+    fun startLocationUpdates() {
+        if (_locationPermissionGranted.value) {
+            if (locationService == null) {
+                locationService = LocationService(getApplication<Application>().applicationContext).apply {
+                    setOnLocationUpdateListener { location ->
+                        updateLocation(location)
+                    }
+                    // Inicia as atualizações. O LocationService deve ter sua própria verificação interna de permissão,
+                    // mas aqui no ViewModel, já garantimos que _locationPermissionGranted.value é true.
+                    startLocationUpdates()
                 }
-                // A chamada para startLocationUpdates() é feita aqui,
-                // o LocationService internamente verifica as permissões antes de realmente iniciar.
-                startLocationUpdates()
+            } else {
+                locationService?.startLocationUpdates() // Garanta que as atualizações estão ativas.
             }
-            isLocationServiceInitialized = true
         }
+    }
+
+    fun stopLocationUpdates() {
+        locationService?.stopLocationUpdates()
     }
 
     fun updateLocation(location: Location) {
         _currentLocation.value = LatLng(location.latitude, location.longitude)
     }
 
-    // Chamado quando o ViewModel é destruído
+    fun handleLocationPermissionResult(fineGranted: Boolean, coarseGranted: Boolean) {
+        val granted = fineGranted || coarseGranted
+        if (granted != _locationPermissionGranted.value) { // Atualiza apenas se houver mudança no status
+            _locationPermissionGranted.value = granted
+            if (granted) {
+                startLocationUpdates() // Se a permissão foi concedida agora, inicie as atualizações.
+            } else {
+                stopLocationUpdates() // Se a permissão foi negada, pare as atualizações e limpe a localização.
+                _currentLocation.value = null
+            }
+        }
+    }
+
     override fun onCleared() {
         super.onCleared()
-        locationService?.stopLocationUpdates()
-        locationService = null // Limpa a referência
-        isLocationServiceInitialized = false
+        stopLocationUpdates() // Garante que as atualizações são paradas
+        locationService = null // Limpa a referência para evitar vazamentos de memória
     }
 }

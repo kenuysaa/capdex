@@ -1,73 +1,60 @@
 package com.example.capdex.ui.map
 
-import android.util.Log
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
-import com.google.maps.android.compose.*
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.rememberCameraPositionState
 
 @Composable
-fun MapPreviewScreen() {
-    // viewModel() factory padrão funciona para AndroidViewModel também
-    val viewModel: MapViewModel = viewModel()
-    val currentLocation by viewModel.currentLocation.collectAsState()
+fun MapPreviewScreen(mapViewModel: MapViewModel = hiltViewModel()) {
+    val currentLocation by mapViewModel.currentLocation.collectAsState()
+    val locationPermissionGranted by mapViewModel.locationPermissionGranted.collectAsState()
 
-    // Inicializa o serviço de localização quando o composable entra na composição
-    // A lógica de inicializar apenas uma vez está agora dentro do ViewModel
-    LaunchedEffect(Unit) {
-        viewModel.initializeLocationServiceIfNeeded()
-    }
-
-    val defaultLocation = LatLng(-23.550520, -46.633308) // São Paulo (Fallback)
+    // Estado da câmera do mapa, inicializado com uma localização padrão ou a localização atual se disponível.
     val cameraPositionState = rememberCameraPositionState {
-        // Posição inicial da câmera
-        position = CameraPosition.fromLatLngZoom(defaultLocation, 10f) // Zoom inicial mais afastado
+        position = CameraPosition.fromLatLngZoom(currentLocation ?: LatLng(-2.5489, -44.2778), 10f) // São Luís como padrão
     }
 
-    // Efeito para mover a câmera quando a localização atual mudar
+    // LaunchedEffect para iniciar/parar as atualizações de localização com base no status da permissão.
+    // Ele é acionado sempre que 'locationPermissionGranted' muda.
+    LaunchedEffect(locationPermissionGranted) {
+        if (locationPermissionGranted) {
+            mapViewModel.startLocationUpdates()
+        } else {
+            mapViewModel.stopLocationUpdates()
+        }
+    }
+
+    // LaunchedEffect para animar a câmera do mapa para a localização atual do usuário.
+    // Ele é acionado sempre que 'currentLocation' muda.
     LaunchedEffect(currentLocation) {
-        Log.d("MapPreviewScreen", "Current Location: $currentLocation")
-        currentLocation?.let { newLocation ->
+        currentLocation?.let { latLng ->
+            val cameraPosition = CameraPosition.fromLatLngZoom(latLng, 15f)
             cameraPositionState.animate(
-                update = CameraUpdateFactory.newCameraPosition(
-                    CameraPosition(newLocation, 15f, 0f, 0f) // Tilt, Bearing = 0
-                ),
+                update = CameraUpdateFactory.newCameraPosition(cameraPosition),
                 durationMs = 1000
             )
         }
     }
 
-    MaterialTheme {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            GoogleMap(
-                modifier = Modifier.fillMaxSize(),
-                cameraPositionState = cameraPositionState,
-                properties = MapProperties(
-                    isMyLocationEnabled = true // Mostra o ponto azul se a permissão estiver concedida e a localização ativa
-                ),
-                uiSettings = MapUiSettings(
-                    zoomControlsEnabled = true, // Habilita controles de zoom
-                    myLocationButtonEnabled = true // Habilita o botão "minha localização"
-                )
-            ) {
-                currentLocation?.let { location ->
-                    Marker(
-                        state = MarkerState(position = location),
-                        title = "Localização Atual",
-                        snippet = "Você está aqui"
-                    )
-                }
-                // Você pode adicionar outros Markers aqui se necessário
-            }
+    GoogleMap(
+        cameraPositionState = cameraPositionState
+    ) {
+        // Adiciona um marcador na localização atual do usuário, se disponível.
+        currentLocation?.let {
+            Marker(
+                state = MarkerState(position = it),
+                title = "Sua Localização Atual",
+                snippet = "Você está aqui!"
+            )
         }
     }
 }

@@ -6,31 +6,25 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.compose.runtime.Composable
 import androidx.core.content.ContextCompat
 import com.example.capdex.presentation.ui.theme.CapDexTheme
 import com.example.capdex.ui.map.MapPreviewScreen
+import com.example.capdex.ui.map.MapViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    private val mapViewModel: MapViewModel by viewModels()
 
+    // Registra o callback para o resultado da solicitação de permissões de localização.
     private val locationPermissionRequest = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
         val fineLocationGranted = permissions.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false)
         val coarseLocationGranted = permissions.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION, false)
-
-        if (fineLocationGranted || coarseLocationGranted) {
-            // Permissão concedida.
-            // O MapPreviewScreen/MapViewModel tentará inicializar o LocationService.
-            // Se o MapPreviewScreen já estiver na composição, seu LaunchedEffect
-            // chamará initializeLocationServiceIfNeeded no ViewModel.
-            // Se você precisar forçar uma re-verificação ou re-chamada no ViewModel,
-            // você poderia ter um State no ViewModel que é atualizado aqui e observado na tela.
-            // Mas, na maioria dos casos, a lógica atual deve ser suficiente.
-        } else {
-            // Permissão negada.
-            // Você pode querer mostrar uma mensagem ao usuário ou desabilitar funcionalidades.
-        }
+        mapViewModel.handleLocationPermissionResult(fineLocationGranted, coarseLocationGranted) // Passa o resultado da permissão diretamente para o ViewModel.
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -38,19 +32,20 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             CapDexTheme {
-                MainScreen()
+                MainScreen(mapViewModel = mapViewModel)
             }
         }
 
-        checkAndRequestLocationPermissions()
+        checkAndRequestLocationPermissions() // Verifica e solicita permissões de localização no início do ciclo de vida da Activity.
     }
 
     @Composable
-    private fun MainScreen() {
-        // MapPreviewScreen é o conteúdo principal que usará o ViewModel
-        MapPreviewScreen()
+    private fun MainScreen(mapViewModel: MapViewModel) {
+        MapPreviewScreen(mapViewModel = mapViewModel)
     }
 
+    // Verifica o status atual das permissões de localização e as solicita se necessário.
+    // Informa o ViewModel sobre o status inicial das permissões.
     private fun checkAndRequestLocationPermissions() {
         val hasFineLocationPermission = ContextCompat.checkSelfPermission(
             this,
@@ -62,9 +57,12 @@ class MainActivity : ComponentActivity() {
             Manifest.permission.ACCESS_COARSE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
 
-        if (!hasFineLocationPermission || !hasCoarseLocationPermission) {
-            // Solicita ambas as permissões se uma delas (ou ambas) não estiver concedida.
-            // O usuário pode optar por conceder apenas a aproximada.
+        val initialGrantedState = hasFineLocationPermission || hasCoarseLocationPermission
+
+        // Inicia o serviço de localização imediatamente se as permissões já estiverem concedidas.
+        mapViewModel.handleLocationPermissionResult(hasFineLocationPermission, hasCoarseLocationPermission)
+
+        if (!initialGrantedState) {
             locationPermissionRequest.launch(
                 arrayOf(
                     Manifest.permission.ACCESS_FINE_LOCATION,
@@ -72,10 +70,5 @@ class MainActivity : ComponentActivity() {
                 )
             )
         }
-        // Se as permissões já estiverem concedidas, o MapPreviewScreen/MapViewModel
-        // irá lidar com a inicialização do serviço de localização quando for composto.
     }
-
-    // Não há mais necessidade de startLocationUpdates() ou onDestroy() para o locationService aqui.
-    // O ciclo de vida do LocationService agora está atrelado ao MapViewModel.
 }
