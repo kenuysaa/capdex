@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Build
 import android.os.Looper
+import android.util.Log
 import androidx.core.app.ActivityCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
@@ -37,6 +38,7 @@ class LocationService(private val context: Context) {
         override fun onLocationResult(locationResult: LocationResult) {
             locationResult.lastLocation?.let { location ->
                 onLocationUpdate?.invoke(location)
+                Log.d("LocationService", "Nova localização recebida: $location")
                 coroutineScope.launch {
                     saveLocationToFirebase(location)
                 }
@@ -54,6 +56,7 @@ class LocationService(private val context: Context) {
                 Manifest.permission.ACCESS_FINE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED
         ) {
+            Log.d("LocationService", "Iniciando atualizações de localização")
             fusedLocationClient.requestLocationUpdates(
                 locationRequest,
                 locationCallback,
@@ -63,12 +66,14 @@ class LocationService(private val context: Context) {
     }
 
     fun stopLocationUpdates() {
+        Log.d("LocationService", "Parando atualizações de localização")
         fusedLocationClient.removeLocationUpdates(locationCallback)
         onLocationUpdate = null
     }
 
     private suspend fun saveLocationToFirebase(location: Location) {
         try {
+            Log.d("LocationService", "Salvando localização no Firebase: $location")
             val deviceModel = Build.MODEL
 
             val locationData = hashMapOf(
@@ -94,6 +99,7 @@ class LocationService(private val context: Context) {
 
             storageRef.putBytes(locationJson.toByteArray()).await()
         } catch (e: Exception) {
+            Log.e("LocationService", "Erro ao salvar localização no Firebase", e)
             e.printStackTrace()
         }
     }

@@ -7,7 +7,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.core.content.ContextCompat
 import androidx.navigation.compose.rememberNavController
 import com.example.capdex.ui.theme.CapDexTheme
 import com.example.capdex.ui.map.MapViewModel
@@ -35,16 +34,8 @@ class MainActivity : ComponentActivity() {
                 AppNavGraph(navController = navController)
             }
         }
-        // A chamada para verificar e solicitar permissões no onCreate foi removida.
-        // checkAndRequestLocationPermissions()
     }
 
-    // A função MainScreen @Composable não é mais necessária aqui.
-    // private fun MainScreen(mapViewModel: MapViewModel) {
-    //     MapPreviewScreen(mapViewModel = mapViewModel)
-    // }
-
-    // A função para verificar e solicitar permissões agora será chamada sob demanda.
     fun requestLocationPermissions() {
         locationPermissionRequest.launch(
             arrayOf(
@@ -54,16 +45,9 @@ class MainActivity : ComponentActivity() {
         )
     }
 
-    // Função para verificar se as permissões de localização foram concedidas.
     fun checkLocationPermissions(): Boolean {
-        val fineLocationGranted = ContextCompat.checkSelfPermission(
-            this,
-            Manifest.permission.ACCESS_FINE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
-        val coarseLocationGranted = ContextCompat.checkSelfPermission(
-            this,
-            Manifest.permission.ACCESS_COARSE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
+        val fineLocationGranted = checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        val coarseLocationGranted = checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
         return fineLocationGranted || coarseLocationGranted
     }
 }
