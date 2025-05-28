@@ -7,7 +7,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.capdex.presentation.AuthViewModel
 import com.example.capdex.presentation.EmbarcacaoRegistrationViewModel
-import com.example.capdex.presentation.MainScreenViewModel
 import com.example.capdex.ui.cadastro.CadastroScreen
 import com.example.capdex.ui.embarcacao.EmbarcacaoRegistrationScreen
 import com.example.capdex.ui.login.LoginScreen
@@ -34,11 +33,11 @@ fun AppNavGraph(navController: NavHostController) {
             )
         }
         composable(Screen.Main.route) {
-            val mainScreenViewModel: MainScreenViewModel = hiltViewModel()
-            MainScreen(navController = navController, mainScreenViewModel = mainScreenViewModel)
+            MainScreen(navController = navController) // Usando a MainScreen modificada
         }
         composable(Screen.Map.route) {
-            // Agora a tela do mapa é mostrada diretamente na MainScreen
+            // A tela do mapa será carregada aqui quando navegarmos para Screen.Map.route
+            com.example.capdex.ui.map.MapPreviewScreen()
         }
         composable(Screen.Logout.route) {
             LogoutScreen(authViewModel = authViewModel) {

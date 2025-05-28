@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
+import android.os.Build
 import android.os.Looper
 import androidx.core.app.ActivityCompat
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -18,7 +19,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import java.util.*
+import java.util.Date
 
 class LocationService(private val context: Context) {
     private val fusedLocationClient: FusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
@@ -68,7 +69,10 @@ class LocationService(private val context: Context) {
 
     private suspend fun saveLocationToFirebase(location: Location) {
         try {
+            val deviceModel = Build.MODEL
+
             val locationData = hashMapOf(
+                "deviceModel" to deviceModel, // Adicionando o modelo do dispositivo
                 "latitude" to location.latitude,
                 "longitude" to location.longitude,
                 "timestamp" to Date(),
