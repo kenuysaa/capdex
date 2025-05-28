@@ -12,6 +12,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.example.capdex.presentation.MainScreenViewModel
 import com.example.capdex.ui.navigation.Screen
+import com.example.capdex.ui.map.MapPreviewScreen
 
 @Composable
 fun MainScreen(navController: NavHostController, mainScreenViewModel: MainScreenViewModel = hiltViewModel()) {
@@ -20,30 +21,39 @@ fun MainScreen(navController: NavHostController, mainScreenViewModel: MainScreen
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically)
     ) {
-        Row(horizontalArrangement = Arrangement.SpaceAround, modifier = Modifier.fillMaxWidth()) {
-            Button(onClick = { navController.navigate(Screen.Map.route) }) {
-                Text("Mapa")
-            }
-            Button(onClick = { navController.navigate(Screen.Logout.route) }) {
-                Text("Logout")
-            }
-        }
+        // Conteúdo principal: o mapa
+        MapPreviewScreen()
 
-        if (uiState.isProprietario) {
-            Button(onClick = { navController.navigate(Screen.RegisterEmbarcacao.route) }) {
-                Text("Cadastrar Embarcação")
+        // Botões e outros elementos que você quer sobre o mapa ou em outra parte da tela principal
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.Bottom) // Alinha os botões na parte inferior
+        ) {
+            Row(horizontalArrangement = Arrangement.SpaceAround, modifier = Modifier.fillMaxWidth()) {
+                Button(onClick = { /* Navegar para alguma outra tela relacionada ao mapa, se necessário */ }) {
+                    Text("Opções do Mapa")
+                }
+                Button(onClick = { navController.navigate(Screen.Logout.route) }) {
+                    Text("Logout")
+                }
             }
-            Button(onClick = { navController.navigate(Screen.OwnerVessels.route) }) {
-                Text("Minhas Embarcações")
-            }
-        }
 
-        if (uiState.isLoading) {
-            CircularProgressIndicator()
+            if (uiState.isProprietario) {
+                Button(onClick = { navController.navigate(Screen.RegisterEmbarcacao.route) }) {
+                    Text("Cadastrar Embarcação")
+                }
+                Button(onClick = { navController.navigate(Screen.OwnerVessels.route) }) {
+                    Text("Minhas Embarcações")
+                }
+            }
+
+            if (uiState.isLoading) {
+                CircularProgressIndicator()
+            }
         }
     }
 }

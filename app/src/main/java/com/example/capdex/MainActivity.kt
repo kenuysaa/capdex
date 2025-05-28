@@ -7,12 +7,12 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.compose.runtime.Composable
 import androidx.core.content.ContextCompat
-import com.example.capdex.presentation.ui.theme.CapDexTheme
-import com.example.capdex.ui.map.MapPreviewScreen
+import androidx.navigation.compose.rememberNavController
+import com.example.capdex.ui.theme.CapDexTheme
 import com.example.capdex.ui.map.MapViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import com.example.capdex.ui.navigation.AppNavGraph
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -31,18 +31,20 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            CapDexTheme {
-                MainScreen(mapViewModel = mapViewModel)
+            CapDexTheme(dynamicColor = false) {
+                val navController = rememberNavController()
+                AppNavGraph(navController = navController)
             }
         }
 
         checkAndRequestLocationPermissions() // Verifica e solicita permissões de localização no início do ciclo de vida da Activity.
     }
 
-    @Composable
-    private fun MainScreen(mapViewModel: MapViewModel) {
-        MapPreviewScreen(mapViewModel = mapViewModel)
-    }
+    // A função MainScreen @Composable não é mais necessária aqui, pois AppNavGraph é o root.
+    // @Composable
+    // private fun MainScreen(mapViewModel: MapViewModel) {
+    //     MapPreviewScreen(mapViewModel = mapViewModel)
+    // }
 
     // Verifica o status atual das permissões de localização e as solicita se necessário.
     // Informa o ViewModel sobre o status inicial das permissões.

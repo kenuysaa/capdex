@@ -18,7 +18,7 @@ import com.example.capdex.ui.proprietario.OwnerVesselsScreen
 @Composable
 fun AppNavGraph(navController: NavHostController) {
     val authViewModel: AuthViewModel = hiltViewModel()
-    NavHost(navController = navController, startDestination = Screen.Login.route) {
+    NavHost(navController = navController, startDestination = Screen.Cadastro.route) {
         composable(Screen.Login.route) {
             LoginScreen(
                 authViewModel = authViewModel,
@@ -38,7 +38,7 @@ fun AppNavGraph(navController: NavHostController) {
             MainScreen(navController = navController, mainScreenViewModel = mainScreenViewModel)
         }
         composable(Screen.Map.route) {
-            // Sua tela de mapa
+            // Agora a tela do mapa é mostrada diretamente na MainScreen
         }
         composable(Screen.Logout.route) {
             LogoutScreen(authViewModel = authViewModel) {
