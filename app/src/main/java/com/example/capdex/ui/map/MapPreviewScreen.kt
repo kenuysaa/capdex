@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package com.example.capdex.ui.map
 
 import android.Manifest
@@ -17,6 +15,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MapPreviewScreen(
     navController: NavController,
@@ -52,7 +51,6 @@ fun MapPreviewScreen(
         )
     }
 
-    // Move a câmera para a localização atual do proprietário assim que ela estiver disponível
     LaunchedEffect(currentLocation, isProprietario) {
         if (isProprietario && currentLocation != null) {
             cameraPositionState.animate(
@@ -85,21 +83,39 @@ fun MapPreviewScreen(
                 properties = MapProperties(
                     isMyLocationEnabled = isProprietario && locationPermissionGranted
                 )
+            ) {
+                // Marcador para Porto Novo
+                val portoNovoPosition = LatLng(-3.150333, -58.443555)
+                val portoNovoState = rememberMarkerState(position = portoNovoPosition)
+                MarkerInfoWindow(
+                    state = portoNovoState,
+                    title = "Porto Novo",
+                    snippet = "Porto Novo",
+                    onClick = {
+                        portoNovoState.showInfoWindow()
+                        true
+                    }
+                )
 
-            )
-            // Marcador para Porto Novo
-//            Marker(
-//                state = MarkerState(position = LatLng(-3.150333, -58.443555)),
-//                title = "Porto Novo",
-//                snippet = "Porto Novo"
-//            )
-//
-//            // Marcador para Porto Velho
-//            Marker(
-//                state = MarkerState(position = LatLng(-3.146670, -58.451048)),
-//                title = "Porto Velho",
-//                snippet = "Porto Velho"
-//            )
+                // Marcador para Porto Velho
+                val portoVelhoPosition = LatLng(-3.146670, -58.451048)
+                val portoVelhoState = rememberMarkerState(position = portoVelhoPosition)
+                MarkerInfoWindow(
+                    state = portoVelhoState,
+                    title = "Porto Velho",
+                    snippet = "Porto Velho",
+                    onClick = {
+                        portoVelhoState.showInfoWindow()
+                        true
+                    }
+                )
+
+                // Exibir os InfoWindows automaticamente ao carregar o mapa
+                LaunchedEffect(Unit) {
+                    portoNovoState.showInfoWindow()
+                    portoVelhoState.showInfoWindow()
+                }
+            }
         }
     }
 }
