@@ -1,86 +1,105 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.example.capdex.ui.map
 
-import android.util.Log
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.hilt.navigation.compose.hiltViewModel
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
-import com.google.maps.android.compose.GoogleMap
-import com.google.maps.android.compose.Marker
-import com.google.maps.android.compose.MarkerState
-import com.google.maps.android.compose.Polyline
-import com.google.maps.android.compose.rememberCameraPositionState
+import com.google.maps.android.compose.*
 
 @Composable
-fun MapPreviewScreen(isProprietario: Boolean, mapViewModel: MapViewModel = hiltViewModel()) {
-    val currentLocation by mapViewModel.currentLocation.collectAsState()
+fun MapPreviewScreen(
+    navController: NavController,
+    isProprietario: Boolean,
+    mapViewModel: MapViewModel = viewModel()
+) {
     val locationPermissionGranted by mapViewModel.locationPermissionGranted.collectAsState()
+    val currentLocation by mapViewModel.currentLocation.collectAsState()
+    val cameraPositionState = rememberCameraPositionState()
 
-    val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(
-            currentLocation ?: LatLng(-2.5489, -44.2778),
-            10f
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions(),
+        onResult = { permissions ->
+            val fineGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true
+            val coarseGranted = permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+            mapViewModel.handleLocationPermissionResult(fineGranted, coarseGranted)
+        }
+    )
+
+    LaunchedEffect(Unit) {
+        permissionLauncher.launch(
+            arrayOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            )
+        )
+
+        cameraPositionState.move(
+            CameraUpdateFactory.newLatLngZoom(
+                mapViewModel.defaultLocation,
+                15f
+            )
         )
     }
 
-    // Inicia ou para as atualizações de localização com base no status da permissão e tipo de usuário
-    LaunchedEffect(locationPermissionGranted, isProprietario) {
-        Log.d("MapPreviewScreen", "isProprietario: $isProprietario, locationPermissionGranted: $locationPermissionGranted")
-        if (isProprietario) {
-            if (locationPermissionGranted) {
-                mapViewModel.startLocationUpdates()
-            } else {
-                mapViewModel.stopLocationUpdates()
-            }
-        } else {
-            mapViewModel.stopLocationUpdates()
-            val demoRouteCenter = LatLng(-3.150333, -58.443555)
+    // Move a câmera para a localização atual do proprietário assim que ela estiver disponível
+    LaunchedEffect(currentLocation, isProprietario) {
+        if (isProprietario && currentLocation != null) {
             cameraPositionState.animate(
-                update = CameraUpdateFactory.newLatLngZoom(demoRouteCenter, 12f),
+                update = CameraUpdateFactory.newLatLngZoom(currentLocation!!, 15f),
                 durationMs = 1000
             )
         }
     }
 
-    // Anima a câmera para a localização atual do proprietário
-    LaunchedEffect(currentLocation, isProprietario) {
-        if (isProprietario) {
-            currentLocation?.let { latLng ->
-                val cameraPosition = CameraPosition.fromLatLngZoom(latLng, 15f)
-                cameraPositionState.animate(
-                    update = CameraUpdateFactory.newCameraPosition(cameraPosition),
-                    durationMs = 1000
-                )
-            }
-        }
-    }
-
-    GoogleMap(
-        cameraPositionState = cameraPositionState,
-        properties = com.google.maps.android.compose.MapProperties(
-            isMyLocationEnabled = isProprietario && locationPermissionGranted
-        )
-    ) {
-        if (isProprietario) {
-            // A bolinha azul já indica a localização
-        } else {
-            val demoRoutePoints = listOf(
-                LatLng(-3.150333, -58.443555),
-                LatLng(-3.146670, -58.451048),
-                LatLng(-3.16, -58.43)
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text("Visualização do Mapa") },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
+                    }
+                }
             )
-            Polyline(points = demoRoutePoints, color = androidx.compose.ui.graphics.Color.Blue, width = 5f)
-            demoRoutePoints.forEachIndexed { index, latLng ->
-                Marker(
-                    state = MarkerState(position = latLng),
-                    title = "Ponto ${index + 1}",
-                    snippet = "Ponto de Demonstração"
+        }
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            GoogleMap(
+                modifier = Modifier.fillMaxSize(),
+                cameraPositionState = cameraPositionState,
+                properties = MapProperties(
+                    isMyLocationEnabled = isProprietario && locationPermissionGranted
                 )
-            }
+
+            )
+            // Marcador para Porto Novo
+//            Marker(
+//                state = MarkerState(position = LatLng(-3.150333, -58.443555)),
+//                title = "Porto Novo",
+//                snippet = "Porto Novo"
+//            )
+//
+//            // Marcador para Porto Velho
+//            Marker(
+//                state = MarkerState(position = LatLng(-3.146670, -58.451048)),
+//                title = "Porto Velho",
+//                snippet = "Porto Velho"
+//            )
         }
     }
 }

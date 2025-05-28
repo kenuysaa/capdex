@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 class MapViewModel(application: Application) : AndroidViewModel(application) {
+    val defaultLocation = com.google.android.gms.maps.model.LatLng(-23.55052, -46.633308) // Coordenadas de São Paulo como padrão
     private val _currentLocation = MutableStateFlow<LatLng?>(null)
     val currentLocation: StateFlow<LatLng?> = _currentLocation
 

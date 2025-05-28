@@ -78,7 +78,6 @@ dependencies {
         exclude(group = "androidx.navigation", module = "navigation-compose-jvmstubs")
     }
     implementation ("androidx.compose.material:material-icons-extended:1.4.3")
-    implementation("com.google.android.gms:play-services-maps:18.2.0")
     implementation(libs.androidx.appcompat)
 
 

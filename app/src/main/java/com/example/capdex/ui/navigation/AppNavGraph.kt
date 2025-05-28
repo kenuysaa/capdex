@@ -42,8 +42,8 @@ fun AppNavGraph(navController: NavHostController) {
         }
         composable(Screen.Map.route) {
             val mainScreenViewModel: MainScreenViewModel = hiltViewModel()
-            val uiState = mainScreenViewModel.uiState.collectAsState() // Remova o 'by' aqui
-            MapPreviewScreen(isProprietario = uiState.value.isProprietario) // Acesse o valor com .value
+            val uiState by mainScreenViewModel.uiState.collectAsState()
+            MapPreviewScreen(navController = navController, isProprietario = uiState.isProprietario)
         }
         composable(Screen.Logout.route) {
             LogoutScreen(authViewModel = authViewModel) {
