@@ -5,8 +5,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -17,11 +21,13 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.capdex.R
 import com.example.capdex.presentation.AuthViewModel
+import com.example.capdex.ui.cadastro.corTextoBranco
 import com.example.capdex.ui.cadastro.verdeFormularioTranslucido
 import com.example.capdex.ui.cadastro.verdeFundoEscuro
 
@@ -32,6 +38,9 @@ fun LoginScreen(
     onLoginSuccess: (String) -> Unit
 ) {
     val uiState by authViewModel.uiState.collectAsState()
+
+    var senhaVisivel by rememberSaveable { mutableStateOf(false) }
+    var confirmaSenhaVisivel by rememberSaveable { mutableStateOf(false) }
 
     var hasNavigatedOnSuccess by remember { mutableStateOf(false) }
 
@@ -117,7 +126,13 @@ fun LoginScreen(
                         cursorColor = Color.White
                     ),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                    visualTransformation = PasswordVisualTransformation()
+                    visualTransformation = if (senhaVisivel) VisualTransformation.None else PasswordVisualTransformation(),
+                    trailingIcon = {
+                        val icon = if (senhaVisivel) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                        IconButton(onClick = { senhaVisivel = !senhaVisivel }) {
+                            Icon(icon, contentDescription = "Toggle senha", tint = corTextoBranco)
+                        }
+                    }
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
