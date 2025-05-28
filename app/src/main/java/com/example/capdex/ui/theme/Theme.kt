@@ -1,4 +1,4 @@
-package com.example.capdex.presentation.ui.theme
+package com.example.capdex.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -8,7 +8,15 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import com.example.capdex.presentation.ui.theme.Pink40
+import com.example.capdex.presentation.ui.theme.Pink80
+import com.example.capdex.presentation.ui.theme.Purple40
+import com.example.capdex.presentation.ui.theme.Purple80
+import com.example.capdex.presentation.ui.theme.PurpleGrey40
+import com.example.capdex.presentation.ui.theme.PurpleGrey80
+import com.example.capdex.presentation.ui.theme.Typography
 
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
@@ -19,7 +27,8 @@ private val DarkColorScheme = darkColorScheme(
 private val LightColorScheme = lightColorScheme(
     primary = Purple40,
     secondary = PurpleGrey40,
-    tertiary = Pink40
+    tertiary = Pink40,
+    onSurface = Color.White
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),

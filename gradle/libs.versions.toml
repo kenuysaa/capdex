@@ -25,12 +25,14 @@ playServicesLocation = "21.3.0"
 playServicesBase = "18.7.0"
 appcompat = "1.7.0"
 coroutines = "1.10.2"
+navigationComposeJvmstubs = "2.9.0"
 
 [libraries]
 # ================================= AndroidX & Jetpack =================================
 # Core e AppCompat (Fundamentais)
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+
 
 # Jetpack Compose (UI)
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" } # BOM principal do Compose
@@ -87,7 +89,8 @@ kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 kotlinx-coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version.ref = "coroutines" } # Para integração com Tasks do Play Services
 
 # ================================= Testes (Outros) =================================
-junit = { group = "junit", name = "junit", version.ref = "junit" } # Testes unitários JUnit 4
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-navigation-compose-jvmstubs = { group = "androidx.navigation", name = "navigation-compose-jvmstubs", version.ref = "navigationComposeJvmstubs" } # Testes unitários JUnit 4
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

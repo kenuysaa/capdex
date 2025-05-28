@@ -2,6 +2,7 @@ package com.example.capdex.ui.map
 
 import android.app.Application
 import android.location.Location
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import com.example.capdex.location.LocationService
 import com.google.android.gms.maps.model.LatLng
@@ -10,6 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 class MapViewModel(application: Application) : AndroidViewModel(application) {
+    val defaultLocation = com.google.android.gms.maps.model.LatLng(-23.55052, -46.633308) // Coordenadas de São Paulo como padrão
     private val _currentLocation = MutableStateFlow<LatLng?>(null)
     val currentLocation: StateFlow<LatLng?> = _currentLocation
 
@@ -19,23 +21,25 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
     private var locationService: LocationService? = null // Mantém a instância do LocationService
 
     fun startLocationUpdates() {
+        Log.d("MapViewModel", "startLocationUpdates chamado. Permissão concedida: ${_locationPermissionGranted.value}")
         if (_locationPermissionGranted.value) {
             if (locationService == null) {
+                Log.d("MapViewModel", "Inicializando LocationService")
                 locationService = LocationService(getApplication<Application>().applicationContext).apply {
                     setOnLocationUpdateListener { location ->
                         updateLocation(location)
                     }
-                    // Inicia as atualizações. O LocationService deve ter sua própria verificação interna de permissão,
-                    // mas aqui no ViewModel, já garantimos que _locationPermissionGranted.value é true.
                     startLocationUpdates()
                 }
             } else {
-                locationService?.startLocationUpdates() // Garanta que as atualizações estão ativas.
+                Log.d("MapViewModel", "LocationService já inicializado, garantindo que as atualizações estão ativas")
+                locationService?.startLocationUpdates()
             }
         }
     }
 
     fun stopLocationUpdates() {
+        Log.d("MapViewModel", "stopLocationUpdates chamado")
         locationService?.stopLocationUpdates()
     }
 
@@ -45,12 +49,13 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
 
     fun handleLocationPermissionResult(fineGranted: Boolean, coarseGranted: Boolean) {
         val granted = fineGranted || coarseGranted
-        if (granted != _locationPermissionGranted.value) { // Atualiza apenas se houver mudança no status
+        Log.d("MapViewModel", "Resultado da permissão: $granted (fine: $fineGranted, coarse: $coarseGranted)")
+        if (granted != _locationPermissionGranted.value) {
             _locationPermissionGranted.value = granted
             if (granted) {
-                startLocationUpdates() // Se a permissão foi concedida agora, inicie as atualizações.
+                startLocationUpdates()
             } else {
-                stopLocationUpdates() // Se a permissão foi negada, pare as atualizações e limpe a localização.
+                stopLocationUpdates()
                 _currentLocation.value = null
             }
         }
@@ -58,7 +63,7 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
 
     override fun onCleared() {
         super.onCleared()
-        stopLocationUpdates() // Garante que as atualizações são paradas
-        locationService = null // Limpa a referência para evitar vazamentos de memória
+        stopLocationUpdates()
+        locationService = null
     }
 }

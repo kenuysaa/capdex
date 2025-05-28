@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -12,7 +13,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -29,12 +33,26 @@ fun LoginScreen(
 ) {
     val uiState by authViewModel.uiState.collectAsState()
 
+    var hasNavigatedOnSuccess by remember { mutableStateOf(false) }
+
+    LaunchedEffect(key1 = uiState.userUid, key2 = uiState.successMessage) {
+        if (uiState.userUid != null && uiState.successMessage != null && !hasNavigatedOnSuccess) {
+            onLoginSuccess(uiState.userUid!!)
+            hasNavigatedOnSuccess = true
+        }
+    }
+
+    LaunchedEffect(uiState.isLoading) {
+        if (!uiState.isLoading) {
+            hasNavigatedOnSuccess = false
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(verdeFundoEscuro)
     ) {
-        // Imagem de fundo
         Image(
             painter = painterResource(id = R.drawable.fundologin),
             contentDescription = null,
@@ -42,13 +60,12 @@ fun LoginScreen(
             modifier = Modifier.fillMaxSize()
         )
 
-        // Caixa central com fundo esverdeado e bordas arredondadas
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp)
                 .clip(RoundedCornerShape(20.dp))
-                .background(verdeFormularioTranslucido) // verde com transparência
+                .background(verdeFormularioTranslucido)
                 .padding(20.dp)
                 .align(Alignment.Center)
         ) {
@@ -68,7 +85,8 @@ fun LoginScreen(
                     value = uiState.email,
                     onValueChange = { authViewModel.onEmailChanged(it) },
                     label = { Text("Email", color = Color.White) },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().background(Color.Transparent),
+                    textStyle = TextStyle(color = Color.White), // <--- CORREÇÃO AQUI: Definindo explicitamente a cor do texto
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedTextColor = Color.White,
                         unfocusedTextColor = Color.White,
@@ -77,8 +95,8 @@ fun LoginScreen(
                         focusedLabelColor = Color.White,
                         unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
                         cursorColor = Color.White
-                    )
-
+                    ),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -87,7 +105,8 @@ fun LoginScreen(
                     value = uiState.password,
                     onValueChange = { authViewModel.onPasswordChanged(it) },
                     label = { Text("Senha", color = Color.White) },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().background(Color.Transparent),
+                    textStyle = TextStyle(color = Color.White), // <--- CORREÇÃO AQUI: Definindo explicitamente a cor do texto
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedTextColor = Color.White,
                         unfocusedTextColor = Color.White,
@@ -96,8 +115,9 @@ fun LoginScreen(
                         focusedLabelColor = Color.White,
                         unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
                         cursorColor = Color.White
-                    )
-
+                    ),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    visualTransformation = PasswordVisualTransformation()
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -120,19 +140,10 @@ fun LoginScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(it, color = MaterialTheme.colorScheme.error)
                 }
-
-                uiState.successMessage?.let {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(it, color = MaterialTheme.colorScheme.secondary)
-                    if (uiState.userUid != null) {
-                        onLoginSuccess(uiState.userUid!!)
-                    }
-                }
             }
         }
     }
 }
-
 
 @Preview(showBackground = true)
 @Composable

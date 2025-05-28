@@ -1,6 +1,8 @@
 package com.example.capdex.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -13,12 +15,13 @@ import com.example.capdex.ui.embarcacao.EmbarcacaoRegistrationScreen
 import com.example.capdex.ui.login.LoginScreen
 import com.example.capdex.ui.main.LogoutScreen
 import com.example.capdex.ui.main.MainScreen
+import com.example.capdex.ui.map.MapPreviewScreen
 import com.example.capdex.ui.proprietario.OwnerVesselsScreen
 
 @Composable
 fun AppNavGraph(navController: NavHostController) {
     val authViewModel: AuthViewModel = hiltViewModel()
-    NavHost(navController = navController, startDestination = Screen.Login.route) {
+    NavHost(navController = navController, startDestination = Screen.Cadastro.route) {
         composable(Screen.Login.route) {
             LoginScreen(
                 authViewModel = authViewModel,
@@ -38,7 +41,9 @@ fun AppNavGraph(navController: NavHostController) {
             MainScreen(navController = navController, mainScreenViewModel = mainScreenViewModel)
         }
         composable(Screen.Map.route) {
-            // Sua tela de mapa
+            val mainScreenViewModel: MainScreenViewModel = hiltViewModel()
+            val uiState by mainScreenViewModel.uiState.collectAsState()
+            MapPreviewScreen(navController = navController, isProprietario = uiState.isProprietario)
         }
         composable(Screen.Logout.route) {
             LogoutScreen(authViewModel = authViewModel) {
@@ -51,7 +56,7 @@ fun AppNavGraph(navController: NavHostController) {
             val embarcacaoRegistrationViewModel: EmbarcacaoRegistrationViewModel = hiltViewModel()
             EmbarcacaoRegistrationScreen(
                 embarcacaoRegistrationViewModel = embarcacaoRegistrationViewModel,
-                onEmbarcacaoRegistered = { navController.navigate(Screen.Main.route) } // Volta para a tela principal após o cadastro
+                onEmbarcacaoRegistered = { navController.navigate(Screen.Main.route) }
             )
         }
         composable(Screen.OwnerVessels.route) {

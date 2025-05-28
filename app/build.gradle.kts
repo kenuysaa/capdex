@@ -74,9 +74,11 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    implementation("androidx.navigation:navigation-compose:2.7.7")
+    implementation(libs.androidx.navigation.compose) {
+        exclude(group = "androidx.navigation", module = "navigation-compose-jvmstubs")
+    }
     implementation ("androidx.compose.material:material-icons-extended:1.4.3")
-    implementation("com.google.android.gms:play-services-maps:18.2.0")
+    implementation(libs.androidx.appcompat)
 
 
     // Hilt dependencies

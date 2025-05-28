@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext // Mantido, embora não usado para Toast no exemplo atual
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.*
 import androidx.compose.ui.unit.dp
@@ -29,7 +30,7 @@ import com.example.capdex.R
 import com.example.capdex.presentation.AuthViewModel
 import com.example.capdex.ui.navigation.Screen
 
-// Suas cores (mantidas como você definiu)
+// Suas cores (mantidas)
 val verdeFundoEscuro = Color(0xFF2E7D32)
 val verdeFormularioTranslucido = Color(0xB368A46A)
 val corTextoBranco = Color.White
@@ -39,11 +40,11 @@ val corTextoBotaoPrincipal = Color(0xFF1B5E20)
 
 @Composable
 fun CadastroScreen(
-    authViewModel: AuthViewModel,      // <-- ADAPTAÇÃO: Nome do parâmetro
-    onNavigateToLogin: () -> Unit,   // <-- ADAPTAÇÃO: Nome do parâmetro
-    onRegistrationSuccess: () -> Unit // <-- ADAPTAÇÃO: Nome do parâmetro
+    authViewModel: AuthViewModel,
+    onNavigateToLogin: () -> Unit,
+    onRegistrationSuccess: () -> Unit
 ) {
-    val uiState by authViewModel.uiState.collectAsState() // <-- ADAPTAÇÃO: Usando authViewModel
+    val uiState by authViewModel.uiState.collectAsState()
 
     var confirmaEmail by rememberSaveable { mutableStateOf("") }
     var confirmaSenha by rememberSaveable { mutableStateOf("") }
@@ -56,25 +57,19 @@ fun CadastroScreen(
     var confirmaEmailError by remember { mutableStateOf<String?>(null) }
     var senhaError by remember { mutableStateOf<String?>(null) }
     var confirmaSenhaError by remember { mutableStateOf<String?>(null) }
-    // val context = LocalContext.current // Mantido para sua referência
 
-    // Estado local para controlar se a navegação de sucesso já ocorreu
     var hasNavigatedOnSuccess by rememberSaveable { mutableStateOf(false) }
 
+    // Efeito para navegar após o sucesso do registro
     LaunchedEffect(key1 = uiState.userUid, key2 = uiState.successMessage) {
         if (uiState.userUid != null && uiState.successMessage != null && !hasNavigatedOnSuccess) {
-            onRegistrationSuccess() // <-- ADAPTAÇÃO: Nome da função de callback
-            hasNavigatedOnSuccess = true // Marca que a navegação ocorreu
-
+            onRegistrationSuccess()
+            hasNavigatedOnSuccess = true
         }
     }
 
-
-    LaunchedEffect(uiState.email, uiState.password, uiState.nomeCompleto, uiState.isLoading) {
-        if (!uiState.isLoading) { // Só reseta se não estiver carregando uma operação anterior
-            hasNavigatedOnSuccess = false
-        }
-    }
+    // O LaunchedEffect para uiState.isLoading foi removido por redundância,
+    // pois a flag hasNavigatedOnSuccess já é resetada no onClick do botão Registrar.
 
 
     Box(
@@ -120,7 +115,7 @@ fun CadastroScreen(
                 CadastroTextField(
                     value = uiState.nomeCompleto,
                     onValueChange = {
-                        authViewModel.onNomeCompletoChanged(it) // <-- ADAPTAÇÃO: Usando authViewModel
+                        authViewModel.onNomeCompletoChanged(it)
                         nomeError = null
                     },
                     label = "Nome Completo",
@@ -132,7 +127,7 @@ fun CadastroScreen(
                 CadastroTextField(
                     value = uiState.email,
                     onValueChange = {
-                        authViewModel.onEmailChanged(it) // <-- ADAPTAÇÃO: Usando authViewModel
+                        authViewModel.onEmailChanged(it)
                         emailError = null
                     },
                     label = "E-mail",
@@ -158,7 +153,7 @@ fun CadastroScreen(
                 CadastroTextField(
                     value = uiState.password,
                     onValueChange = {
-                        authViewModel.onPasswordChanged(it) // <-- ADAPTAÇÃO: Usando authViewModel
+                        authViewModel.onPasswordChanged(it)
                         senhaError = null
                     },
                     label = "Senha",
@@ -212,7 +207,6 @@ fun CadastroScreen(
                     TipoContaRadioButton("Cliente", tipoContaUILabel == "Cliente") {
                         tipoContaUILabel = "Cliente"
                     }
-                    // Spacer(modifier = Modifier.width(16.dp)) // Opcional com SpaceAround
                     TipoContaRadioButton("Dono de Embarcação", tipoContaUILabel == "Dono de Embarcação") {
                         tipoContaUILabel = "Dono de Embarcação"
                     }
@@ -239,7 +233,7 @@ fun CadastroScreen(
                         nomeError = null; emailError = null; confirmaEmailError = null; senhaError = null; confirmaSenhaError = null
                         var isValid = true
                         if (uiState.nomeCompleto.isBlank()) { nomeError = "Nome não pode estar vazio"; isValid = false }
-                        if (uiState.email.isBlank()) { emailError = "E-mail não pode estar vazio"; isValid = false }
+                        else if (uiState.email.isBlank()) { emailError = "E-mail não pode estar vazio"; isValid = false }
                         else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(uiState.email).matches()){ emailError = "Formato de e-mail inválido"; isValid = false }
                         if (confirmaEmail != uiState.email) { confirmaEmailError = "Os e-mails não coincidem"; isValid = false }
                         if (uiState.password.isBlank()) { senhaError = "Senha não pode estar vazia"; isValid = false }
@@ -247,13 +241,13 @@ fun CadastroScreen(
                         if (confirmaSenha != uiState.password) { confirmaSenhaError = "As senhas não coincidem"; isValid = false }
 
                         if (isValid) {
-                            hasNavigatedOnSuccess = false // Reseta a flag para permitir navegação na próxima tentativa bem-sucedida
+                            hasNavigatedOnSuccess = false // Resetar a flag para permitir nova navegação
                             val userTypeBackend = when (tipoContaUILabel) {
                                 "Cliente" -> "comum"
                                 "Dono de Embarcação" -> "proprietario"
                                 else -> "comum"
                             }
-                            authViewModel.registerUser(userTypeBackend) // <-- ADAPTAÇÃO: Usando authViewModel
+                            authViewModel.registerUser(userTypeBackend)
                         }
                     },
                     modifier = Modifier.fillMaxWidth().height(50.dp),
@@ -263,8 +257,7 @@ fun CadastroScreen(
                 ) { Text(text = "Registrar", fontSize = 18.sp) }
             }
 
-
-            TextButton(onClick = onNavigateToLogin, enabled = !uiState.isLoading) { // <-- ADAPTAÇÃO: Nome do callback
+            TextButton(onClick = onNavigateToLogin, enabled = !uiState.isLoading) {
                 Text(
                     text = "Tenho uma conta, Entrar",
                     color = corTextoBranco,
@@ -287,16 +280,20 @@ fun CadastroTextField(
     isError: Boolean = false,
     supportingText: String? = null
 ) {
-    Column {
+    Column(modifier = modifier.fillMaxWidth()) {
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            label = { Text(label, fontSize = 11.sp, color = corTextoBranco.copy(alpha = 0.8f)) },
-            modifier = modifier
-                .fillMaxWidth()
-                .height(42.dp), // Altura reduzida
+            label = {
+                Text(
+                    label,
+                    fontSize = 11.sp,
+                    color = corTextoBranco.copy(alpha = 0.8f)
+                )
+            },
+            modifier = Modifier.fillMaxWidth(),
             singleLine = true,
-            textStyle = LocalTextStyle.current.copy(fontSize = 13.sp), // Fonte menor
+            textStyle = TextStyle(fontSize = 13.sp, color = corTextoBranco),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = corTextoBranco,
                 unfocusedTextColor = corTextoBranco,
@@ -323,12 +320,14 @@ fun CadastroTextField(
             Text(
                 text = supportingText,
                 color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
-                modifier = Modifier.padding(start = 12.dp, top = 2.dp)
+                fontSize = 11.sp,
+                modifier = Modifier
+                    .padding(start = 16.dp, top = 2.dp)
             )
         }
     }
 }
+
 
 @Composable
 fun TipoContaRadioButton(text: String, selected: Boolean, onSelect: () -> Unit) {
@@ -346,9 +345,9 @@ fun TipoContaRadioButton(text: String, selected: Boolean, onSelect: () -> Unit) 
                 selectedColor = corTextoBranco,
                 unselectedColor = corTextoBranco.copy(alpha = 0.7f)
             ),
-            modifier = Modifier.size(18.dp) // Botão menor
+            modifier = Modifier.size(18.dp)
         )
         Spacer(modifier = Modifier.width(4.dp))
-        Text(text = text, color = corTextoBranco, fontSize = 12.sp) // Texto menor
+        Text(text = text, color = corTextoBranco, fontSize = 12.sp)
     }
 }
