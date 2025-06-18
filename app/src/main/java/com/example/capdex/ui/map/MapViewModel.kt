@@ -4,46 +4,53 @@ import android.app.Application
 import android.location.Location
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
-import com.example.capdex.location.LocationService
+import com.example.capdex.data.location.LocationService
 import com.google.android.gms.maps.model.LatLng
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import javax.inject.Inject
 
-class MapViewModel(application: Application) : AndroidViewModel(application) {
-    val defaultLocation = com.google.android.gms.maps.model.LatLng(-23.55052, -46.633308) // Coordenadas de São Paulo como padrão
+@HiltViewModel
+class MapViewModel @Inject constructor(
+    application: Application,
+    private val locationService: LocationService
+) : AndroidViewModel(application) {
+
+    val defaultLocation = LatLng(-23.55052, -46.633308) // São Paulo, Brasil
     private val _currentLocation = MutableStateFlow<LatLng?>(null)
     val currentLocation: StateFlow<LatLng?> = _currentLocation
 
     private val _locationPermissionGranted = MutableStateFlow(false)
     val locationPermissionGranted: StateFlow<Boolean> = _locationPermissionGranted.asStateFlow()
 
-    private var locationService: LocationService? = null // Mantém a instância do LocationService
+    private val _activeEmbarcacaoId = MutableStateFlow<String?>("ID_DA_EMBARCACÃO_ATIVA_AQUI")
 
-    fun startLocationUpdates() {
+    init {
+        locationService.setOnLocationUpdateListener { location ->
+            updateLocation(location)
+        }
+    }
+
+    private fun startLocationUpdates() {
         Log.d("MapViewModel", "startLocationUpdates chamado. Permissão concedida: ${_locationPermissionGranted.value}")
         if (_locationPermissionGranted.value) {
-            if (locationService == null) {
-                Log.d("MapViewModel", "Inicializando LocationService")
-                locationService = LocationService(getApplication<Application>().applicationContext).apply {
-                    setOnLocationUpdateListener { location ->
-                        updateLocation(location)
-                    }
-                    startLocationUpdates()
-                }
-            } else {
-                Log.d("MapViewModel", "LocationService já inicializado, garantindo que as atualizações estão ativas")
-                locationService?.startLocationUpdates()
+            _activeEmbarcacaoId.value?.let { embarcacaoId ->
+                Log.d("MapViewModel", "Iniciando LocationService para embarcação: $embarcacaoId")
+                locationService.startLocationUpdates(embarcacaoId)
+            } ?: run {
+                Log.w("MapViewModel", "Não foi possível iniciar atualizações: ID da embarcação ativa não definido.")
             }
         }
     }
 
-    fun stopLocationUpdates() {
+    private fun stopLocationUpdates() {
         Log.d("MapViewModel", "stopLocationUpdates chamado")
-        locationService?.stopLocationUpdates()
+        locationService.stopLocationUpdates()
     }
 
-    fun updateLocation(location: Location) {
+    private fun updateLocation(location: Location) {
         _currentLocation.value = LatLng(location.latitude, location.longitude)
     }
 
@@ -64,6 +71,5 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
     override fun onCleared() {
         super.onCleared()
         stopLocationUpdates()
-        locationService = null
     }
 }
