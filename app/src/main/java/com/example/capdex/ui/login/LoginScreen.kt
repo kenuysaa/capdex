@@ -3,8 +3,10 @@ package com.example.capdex.ui.login
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -19,17 +21,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.input.*
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.capdex.R
 import com.example.capdex.presentation.AuthViewModel
-import com.example.capdex.ui.cadastro.corTextoBranco
-import com.example.capdex.ui.cadastro.verdeFormularioTranslucido
-import com.example.capdex.ui.cadastro.verdeFundoEscuro
+import com.example.capdex.ui.cadastro.*
 
 @Composable
 fun LoginScreen(
@@ -40,10 +38,9 @@ fun LoginScreen(
     val uiState by authViewModel.uiState.collectAsState()
 
     var senhaVisivel by rememberSaveable { mutableStateOf(false) }
-    var confirmaSenhaVisivel by rememberSaveable { mutableStateOf(false) }
-
     var hasNavigatedOnSuccess by remember { mutableStateOf(false) }
 
+    // Navegação ao sucesso
     LaunchedEffect(key1 = uiState.userUid, key2 = uiState.successMessage) {
         if (uiState.userUid != null && uiState.successMessage != null && !hasNavigatedOnSuccess) {
             onLoginSuccess(uiState.userUid!!)
@@ -51,12 +48,7 @@ fun LoginScreen(
         }
     }
 
-    LaunchedEffect(uiState.isLoading) {
-        if (!uiState.isLoading) {
-            hasNavigatedOnSuccess = false
-        }
-    }
-
+    // Fundo da tela
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -64,68 +56,54 @@ fun LoginScreen(
     ) {
         Image(
             painter = painterResource(id = R.drawable.fundologin),
-            contentDescription = null,
+            contentDescription = "Fundo",
             contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .align(Alignment.BottomCenter)
         )
 
-        Box(
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp)
-                .clip(RoundedCornerShape(20.dp))
-                .background(verdeFormularioTranslucido)
-                .padding(20.dp)
-                .align(Alignment.Center)
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 32.dp, vertical = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Spacer(modifier = Modifier.height(80.dp))
+
+            // Cartão do formulário
             Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(verdeFormularioTranslucido)
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
                     text = "Login",
-                    style = MaterialTheme.typography.headlineSmall.copy(color = Color.White),
+                    color = corTextoBranco,
+                    fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 16.dp)
+                    modifier = Modifier.padding(bottom = 24.dp)
                 )
 
-                OutlinedTextField(
+                // Campo de e-mail
+                CadastroTextField(
                     value = uiState.email,
                     onValueChange = { authViewModel.onEmailChanged(it) },
-                    label = { Text("Email", color = Color.White) },
-                    modifier = Modifier.fillMaxWidth().background(Color.Transparent),
-                    textStyle = TextStyle(color = Color.White), // <--- CORREÇÃO AQUI: Definindo explicitamente a cor do texto
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedBorderColor = Color.White,
-                        unfocusedBorderColor = Color.White.copy(alpha = 0.7f),
-                        focusedLabelColor = Color.White,
-                        unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
-                        cursorColor = Color.White
-                    ),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+                    label = "E-mail",
+                    keyboardType = KeyboardType.Email
                 )
+                Spacer(modifier = Modifier.height(12.dp))
 
-                Spacer(modifier = Modifier.height(8.dp))
-
-                OutlinedTextField(
+                // Campo de senha
+                CadastroTextField(
                     value = uiState.password,
                     onValueChange = { authViewModel.onPasswordChanged(it) },
-                    label = { Text("Senha", color = Color.White) },
-                    modifier = Modifier.fillMaxWidth().background(Color.Transparent),
-                    textStyle = TextStyle(color = Color.White), // <--- CORREÇÃO AQUI: Definindo explicitamente a cor do texto
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedBorderColor = Color.White,
-                        unfocusedBorderColor = Color.White.copy(alpha = 0.7f),
-                        focusedLabelColor = Color.White,
-                        unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
-                        cursorColor = Color.White
-                    ),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    label = "Senha",
+                    keyboardType = KeyboardType.Password,
                     visualTransformation = if (senhaVisivel) VisualTransformation.None else PasswordVisualTransformation(),
                     trailingIcon = {
                         val icon = if (senhaVisivel) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
@@ -135,38 +113,50 @@ fun LoginScreen(
                     }
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-                Button(
-                    onClick = { authViewModel.loginUser() },
-                    enabled = !uiState.isLoading,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(if (uiState.isLoading) "Entrando..." else "Entrar")
+                if (uiState.isLoading) {
+                    CircularProgressIndicator(color = corTextoBranco)
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
-
-                TextButton(onClick = onNavigateToCadastro) {
-                    Text("Não tem uma conta? Cadastre-se", color = Color.White)
-                }
-
+                // Erro geral
                 uiState.errorMessage?.let {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(it, color = MaterialTheme.colorScheme.error)
+                    Text(
+                        text = it,
+                        color = MaterialTheme.colorScheme.error,
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
                 }
+
+
+            }
+            Spacer(modifier = Modifier.height(25.dp))
+            // Botão de login
+            Button(
+                onClick = { authViewModel.loginUser() },
+                enabled = !uiState.isLoading,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = corBotaoPrincipal,
+                    contentColor = corTextoBotaoPrincipal
+                )
+            ) {
+                Text("Entrar", fontSize = 18.sp)
+            }
+
+            // Link para cadastro
+            TextButton(onClick = onNavigateToCadastro, enabled = !uiState.isLoading) {
+                Text(
+                    text = "Não tem uma conta? Cadastre-se",
+                    color = corTextoBranco,
+                    fontSize = 16.sp
+                )
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun LoginScreenPreview() {
-    MaterialTheme {
-        LoginScreen(
-            onNavigateToCadastro = {},
-            onLoginSuccess = {}
-        )
     }
 }
