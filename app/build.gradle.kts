@@ -14,8 +14,8 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("com.google.gms.google-services") // Add the Google services Gradle plugin
-    id("com.google.dagger.hilt.android") // Add the Hilt plugin
-    id("com.google.devtools.ksp") // Add the KSP plugin
+    alias(libs.plugins.dagger.hilt)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -33,6 +33,8 @@ android {
 
         val mapsApiKey = localProperties.getProperty("googleMapsApiKey") ?: ""
         manifestPlaceholders["com.google.android.geo.API_KEY"] = mapsApiKey
+
+        multiDexEnabled = true
     }
 
     buildTypes {
@@ -45,6 +47,7 @@ android {
         }
     }
     compileOptions {
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
@@ -74,31 +77,25 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    implementation(libs.androidx.navigation.compose) {
-        exclude(group = "androidx.navigation", module = "navigation-compose-jvmstubs")
-    }
-    implementation ("androidx.compose.material:material-icons-extended:1.4.3")
+    implementation(libs.androidx.navigation.compose)
+    implementation (libs.androidx.material.icons.extended)
     implementation(libs.androidx.appcompat)
 
-
-    // Hilt dependencies
-    implementation("com.google.dagger:hilt-android:2.56.2")
-    ksp("com.google.dagger:hilt-android-compiler:2.56.2")
-    implementation("androidx.hilt:hilt-navigation-compose:1.2.0") // Compose
+    // Dagger Hilt
+    implementation(libs.dagger.hilt)
+    ksp(libs.hilt.compiler)
+    implementation(libs.androidx.hilt.navigation.compose)
 
     // Google Maps
-    implementation("com.google.maps.android:maps-compose:2.15.0")
-    implementation("com.google.android.gms:play-services-maps:18.2.0")
-
+    implementation(platform(libs.play.services.base))
+    implementation(libs.maps.compose)
+    implementation(libs.play.services.maps)
     implementation(libs.play.services.location)
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.storage.ktx)
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.3")
 
-    // Import the Firebase BoM
-    implementation(platform("com.google.firebase:firebase-bom:33.14.0"))
-    // Add the dependencies for any other desired Firebase products
-    // https://firebase.google.com/docs/android/setup#available-libraries
-    implementation("com.google.firebase:firebase-analytics")
-    implementation(libs.firebase.auth.ktx)
-    implementation(libs.firebase.firestore.ktx)
+    // Firebase
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.storage)
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
 }

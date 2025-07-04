@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.capdex.data.repository.AuthRepository
 import com.example.capdex.data.repository.UserRepository
+import com.example.capdex.data.model.Usuario
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -45,24 +46,28 @@ class AuthViewModel @Inject constructor(
     fun registerUser(userType: String) {
         _uiState.update { it.copy(isLoading = true, errorMessage = null, successMessage = null, userUid = null) }
         viewModelScope.launch {
+            // Converte a string userType para o booleano proprietario
+            val isProprietario = userType == "proprietario"
+
             authRepository.createUserWithEmailAndPassword(uiState.value.email, uiState.value.password)
                 .onSuccess { authResult ->
                     authResult.user?.let { firebaseUser ->
-                        val user = com.example.capdex.domain.model.User(
-                            uid = firebaseUser.uid,
+                        val usuario = Usuario(
+                            idUser = firebaseUser.uid,
                             email = uiState.value.email,
-                            userType = userType,
-                            displayName = uiState.value.nomeCompleto
+                            nome = uiState.value.nomeCompleto,
+                            proprietario = isProprietario,
+                            cpf = "" // Assumindo que CPF não é coletado nesta etapa de registro
                         )
-                        userRepository.saveUser(user)
-                            .onSuccess {
-                                _uiState.update { currentState -> // Renomeei 'it' para 'currentState' para clareza
-                                    currentState.copy(isLoading = false, successMessage = "Cadastro realizado com sucesso!", userUid = firebaseUser.uid)
-                                }
+                        try {
+                            // Chama o novo método addUsuario do UserRepository
+                            userRepository.addUsuario(usuario)
+                            _uiState.update { currentState ->
+                                currentState.copy(isLoading = false, successMessage = "Cadastro realizado com sucesso!", userUid = firebaseUser.uid)
                             }
-                            .onFailure { e ->
-                                _uiState.update { it.copy(isLoading = false, errorMessage = "Erro ao salvar dados do usuário: ${e.localizedMessage}") }
-                            }
+                        } catch (e: Exception) {
+                            _uiState.update { it.copy(isLoading = false, errorMessage = "Erro ao salvar dados do usuário: ${e.localizedMessage}") }
+                        }
                     }
                 }
                 .onFailure { e ->
@@ -76,7 +81,7 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             authRepository.signInWithEmailAndPassword(uiState.value.email, uiState.value.password)
                 .onSuccess { authResult ->
-                    _uiState.update { currentState -> // Renomeei 'it' para 'currentState'
+                    _uiState.update { currentState ->
                         currentState.copy(isLoading = false, successMessage = "Login realizado com sucesso!", userUid = authResult.user?.uid)
                     }
                 }
@@ -88,6 +93,6 @@ class AuthViewModel @Inject constructor(
 
     fun signOut() {
         authRepository.signOut()
-        _uiState.update { AuthUiState() } // Resetar o estado
+        _uiState.update { AuthUiState() } // Resetar o estado ao sair
     }
 }
