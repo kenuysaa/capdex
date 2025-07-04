@@ -1,4 +1,4 @@
-package com.example.capdex.ui.cadastro
+package com.example.capdex.ui.auth
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -19,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext // Mantido, embora não usado para Toast no exemplo atual
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -27,8 +26,6 @@ import androidx.compose.ui.text.input.*
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.capdex.R
-import com.example.capdex.presentation.AuthViewModel
-import com.example.capdex.ui.navigation.Screen
 
 // Suas cores (mantidas)
 val verdeFundoEscuro = Color(0xFF2E7D32)

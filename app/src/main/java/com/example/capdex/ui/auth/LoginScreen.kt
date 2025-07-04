@@ -1,4 +1,4 @@
-package com.example.capdex.ui.login
+package com.example.capdex.ui.auth
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -26,10 +26,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.capdex.R
-import com.example.capdex.presentation.AuthViewModel
-import com.example.capdex.ui.cadastro.corTextoBranco
-import com.example.capdex.ui.cadastro.verdeFormularioTranslucido
-import com.example.capdex.ui.cadastro.verdeFundoEscuro
 
 @Composable
 fun LoginScreen(

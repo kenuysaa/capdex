@@ -1,4 +1,4 @@
-package com.example.capdex.ui.main
+package com.example.capdex.ui.auth
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -6,7 +6,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.capdex.presentation.AuthViewModel
 
 @Composable
 fun LogoutScreen(authViewModel: AuthViewModel, onLogout: () -> Unit) {
