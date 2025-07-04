@@ -6,11 +6,4 @@ sealed class Screen(val route: String) {
     object Main : Screen("main")
     object Map : Screen("map")
     object Logout : Screen("logout")
-    object RegisterEmbarcacao : Screen("register_embarcacao")
-    object OwnerVessels : Screen("owner_vessels")
-}
-
-sealed class MainScreenRoute(val route: String) {
-    object Map : MainScreenRoute("map")
-    object Logout : MainScreenRoute("logout")
 }

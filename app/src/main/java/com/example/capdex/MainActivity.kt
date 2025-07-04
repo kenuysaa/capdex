@@ -3,27 +3,22 @@ package com.example.capdex
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.ui.Modifier
-import com.example.capdex.ui.navigation.AppNavigation
+import androidx.navigation.compose.rememberNavController
 import com.example.capdex.ui.theme.CapDexTheme
 import dagger.hilt.android.AndroidEntryPoint
+import com.example.capdex.ui.navigation.AppNavGraph
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
-            CapDexTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    AppNavigation()
-                }
+            CapDexTheme (dynamicColor = false) {
+                val navController = rememberNavController()
+                AppNavGraph(navController = navController)
             }
         }
+
     }
 }
