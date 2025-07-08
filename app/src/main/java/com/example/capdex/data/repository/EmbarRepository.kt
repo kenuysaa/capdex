@@ -18,6 +18,7 @@ interface EmbarRepository {
     suspend fun deleteEmbarcacao(embarcacaoId: String)
     suspend fun getEmbarcacoesByProprietario(proprietarioId: String): List<Embarcacao>
     fun observeEmbarcacoesByProprietario(proprietarioId: String): Flow<List<Embarcacao>>
+    suspend fun getTodasEmbarcacoes(): List<Embarcacao>
 
     suspend fun addLocalizacao(embarcacaoId: String, localizacao: Localizacao): String
     suspend fun getLatestLocalizacoes(embarcacaoId: String, limit: Long = 1): List<Localizacao>
@@ -95,6 +96,17 @@ class EmbarRepositoryImpl @Inject constructor(
             trySend(embarcacoes)
         }
         awaitClose { subscription.remove() }
+    }
+
+    override suspend fun getTodasEmbarcacoes(): List<Embarcacao> {
+        return try {
+            val snapshot = db.collection(EMBARCACAO_COLLECTION)
+                .get()
+                .await()
+            snapshot.toObjects(Embarcacao::class.java)
+        } catch (e: Exception) {
+            emptyList()
+        }
     }
 
     // Implementações dos métodos da Subcoleção de Localização
