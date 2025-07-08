@@ -9,9 +9,16 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,7 +34,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.example.capdex.ui.map.MapViewModel
 import com.example.capdex.ui.navigation.Screen
+import androidx.compose.material3.ExperimentalMaterial3Api
 
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(navController: NavHostController, mainScreenViewModel: MainScreenViewModel = hiltViewModel()) {
     val context = LocalContext.current
@@ -48,7 +58,7 @@ fun MainScreen(navController: NavHostController, mainScreenViewModel: MainScreen
         }
     )
 
-    LaunchedEffect(key1 = Unit) {
+    LaunchedEffect(Unit) {
         val hasFineLocationPermission = ContextCompat.checkSelfPermission(
             context,
             Manifest.permission.ACCESS_FINE_LOCATION
@@ -65,52 +75,68 @@ fun MainScreen(navController: NavHostController, mainScreenViewModel: MainScreen
         )
     }
 
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        if (uiState.isLoading) {
-            CircularProgressIndicator(modifier = Modifier.size(48.dp))
-            Spacer(modifier = Modifier.height(16.dp))
-            Text("Carregando tipo de usuário...", style = MaterialTheme.typography.bodyLarge)
-        } else {
-            Button(onClick = {
-                val hasFineLocationPermission = ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.ACCESS_FINE_LOCATION
-                ) == PackageManager.PERMISSION_GRANTED
-                val hasCoarseLocationPermission = ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-                ) == PackageManager.PERMISSION_GRANTED
-                val isPermissionCurrentlyGranted = hasFineLocationPermission || hasCoarseLocationPermission
-
-                if (isPermissionCurrentlyGranted) {
-                    navController.navigate(Screen.Map.route)
-                } else {
-                    locationPermissionLauncher.launch(
-                        arrayOf(
-                            Manifest.permission.ACCESS_FINE_LOCATION,
-                            Manifest.permission.ACCESS_COARSE_LOCATION
-                        )
-                    )
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text("Menu") },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
+                    }
                 }
-            }) {
-                Text("Ir para o Mapa")
-            }
-            Spacer(modifier = Modifier.height(16.dp))
+            )
+        },
+        content = { paddingValues ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                if (uiState.isLoading) {
+                    CircularProgressIndicator(modifier = Modifier.size(48.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text("Carregando tipo de usuário...", style = MaterialTheme.typography.bodyLarge)
+                } else {
+                    Button(onClick = {
+                        val hasFineLocationPermission = ContextCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.ACCESS_FINE_LOCATION
+                        ) == PackageManager.PERMISSION_GRANTED
+                        val hasCoarseLocationPermission = ContextCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.ACCESS_COARSE_LOCATION
+                        ) == PackageManager.PERMISSION_GRANTED
+                        val isPermissionCurrentlyGranted = hasFineLocationPermission || hasCoarseLocationPermission
 
-            Button(onClick = {
-                navController.navigate(Screen.Logout.route)
-            }) {
-                Text("Sair")
-            }
+                        if (isPermissionCurrentlyGranted) {
+                            navController.navigate(Screen.Map.route)
+                        } else {
+                            locationPermissionLauncher.launch(
+                                arrayOf(
+                                    Manifest.permission.ACCESS_FINE_LOCATION,
+                                    Manifest.permission.ACCESS_COARSE_LOCATION
+                                )
+                            )
+                        }
+                    }) {
+                        Text("Ir para o Mapa")
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
 
-            uiState.errorMessage?.let { message ->
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(message, color = MaterialTheme.colorScheme.error)
+                    Button(onClick = {
+                        navController.navigate(Screen.Logout.route)
+                    }) {
+                        Text("Sair")
+                    }
+
+                    uiState.errorMessage?.let { message ->
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(message, color = MaterialTheme.colorScheme.error)
+                    }
+                }
             }
         }
-    }
+    )
 }

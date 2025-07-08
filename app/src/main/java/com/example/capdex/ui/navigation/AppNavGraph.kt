@@ -40,22 +40,31 @@ fun AppNavGraph(navController: NavHostController) {
 
         composable(Screen.Main.route) {
             val mainScreenViewModel = hiltViewModel<com.example.capdex.ui.main.MainScreenViewModel>()
-            MainScreen(navController = navController, mainScreenViewModel = mainScreenViewModel)
+            MainScreen(
+                navController = navController,
+                mainScreenViewModel = mainScreenViewModel
+            )
         }
 
         composable(Screen.Map.route) {
             val mainScreenViewModel = hiltViewModel<com.example.capdex.ui.main.MainScreenViewModel>()
             val uiState by mainScreenViewModel.uiState.collectAsState()
-            MapPreviewScreen(navController = navController, isProprietario = uiState.isProprietario)
+            MapPreviewScreen(
+                navController = navController,
+                isProprietario = uiState.isProprietario
+            )
         }
 
         composable(Screen.Logout.route) {
-            LogoutScreen(authViewModel = authViewModel) {
-                navController.navigate(Screen.Login.route) {
-                    popUpTo(Screen.Main.route) { inclusive = true }
+            LogoutScreen(
+                navController = navController,
+                authViewModel = authViewModel,
+                onLogout = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.Main.route) { inclusive = true }
+                    }
                 }
-            }
+            )
         }
-
     }
 }

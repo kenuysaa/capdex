@@ -3,31 +3,21 @@ package com.example.capdex.ui.map
 import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material.icons.filled.MyLocation
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng
-import com.google.maps.android.compose.GoogleMap
-import com.google.maps.android.compose.MapProperties
-import com.google.maps.android.compose.MarkerInfoWindow
-import com.google.maps.android.compose.rememberCameraPositionState
-import com.google.maps.android.compose.rememberMarkerState
+import com.google.maps.android.compose.*
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,12 +25,12 @@ fun MapPreviewScreen(
     navController: NavController,
     isProprietario: Boolean,
 ) {
-
     val mapViewModel: MapViewModel = hiltViewModel()
     val locationPermissionGranted by mapViewModel.locationPermissionGranted.collectAsState()
     val currentLocation by mapViewModel.currentLocation.collectAsState()
     val cameraPositionState = rememberCameraPositionState()
 
+    // Launcher para pedir permissões
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions(),
         onResult = { permissions ->
@@ -50,6 +40,7 @@ fun MapPreviewScreen(
         }
     )
 
+    // Solicita permissão e move para localização padrão
     LaunchedEffect(Unit) {
         permissionLauncher.launch(
             arrayOf(
@@ -57,7 +48,6 @@ fun MapPreviewScreen(
                 Manifest.permission.ACCESS_COARSE_LOCATION
             )
         )
-
         cameraPositionState.move(
             CameraUpdateFactory.newLatLngZoom(
                 mapViewModel.defaultLocation,
@@ -66,6 +56,7 @@ fun MapPreviewScreen(
         )
     }
 
+    // Atualiza a câmera para o local atual se for proprietário
     LaunchedEffect(currentLocation, isProprietario) {
         if (isProprietario && currentLocation != null) {
             cameraPositionState.animate(
@@ -96,7 +87,7 @@ fun MapPreviewScreen(
                 modifier = Modifier.fillMaxSize(),
                 cameraPositionState = cameraPositionState,
                 properties = MapProperties(
-                    isMyLocationEnabled = isProprietario && locationPermissionGranted
+                    isMyLocationEnabled = true
                 )
             ) {
                 // Marcador para Porto Novo
@@ -125,11 +116,33 @@ fun MapPreviewScreen(
                     }
                 )
 
-                // Exibir os InfoWindows automaticamente ao carregar o mapa
+                // Exibe os InfoWindows ao carregar
                 LaunchedEffect(Unit) {
                     portoNovoState.showInfoWindow()
                     portoVelhoState.showInfoWindow()
                 }
+            }
+
+            // Botão flutuante para centralizar na localização do usuário
+            if (isProprietario && currentLocation != null && locationPermissionGranted) {
+                val coroutineScope = rememberCoroutineScope()
+
+                FloatingActionButton(
+                    onClick = {
+                        coroutineScope.launch {
+                            cameraPositionState.animate(
+                                update = CameraUpdateFactory.newLatLngZoom(currentLocation!!, 16f),
+                                durationMs = 1000
+                            )
+                        }
+                    },
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(16.dp)
+                ) {
+                    Icon(Icons.Filled.MyLocation, contentDescription = "Minha Localização")
+                }
+
             }
         }
     }
