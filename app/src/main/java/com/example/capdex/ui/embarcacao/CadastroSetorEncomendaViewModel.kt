@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.capdex.data.model.Encomenda
 import com.example.capdex.data.repository.EncRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -84,4 +85,8 @@ class CadastroSetorEncomendaViewModel @Inject constructor(
         // Pode ser substituído por um gerador de ID mais robusto se necessário
         return System.currentTimeMillis().toString()
     }
-} 
+}
+
+annotation class Inject
+
+annotation class HiltViewModel
