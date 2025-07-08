@@ -81,6 +81,7 @@ fun CadastroScreen(
 
     // Estados locais para confirmação de email e senha e visibilidade dos campos de senha
     var confirmaEmail by rememberSaveable { mutableStateOf("") }
+    var CPF by rememberSaveable { mutableStateOf("") }
     var confirmaSenha by rememberSaveable { mutableStateOf("") }
     var senhaVisivel by rememberSaveable { mutableStateOf(false) }
     var confirmaSenhaVisivel by rememberSaveable { mutableStateOf(false) }
@@ -92,6 +93,7 @@ fun CadastroScreen(
     var nomeError by remember { mutableStateOf<String?>(null) }
     var emailError by remember { mutableStateOf<String?>(null) }
     var confirmaEmailError by remember { mutableStateOf<String?>(null) }
+    var cpfError by remember { mutableStateOf<String?>(null) }
     var senhaError by remember { mutableStateOf<String?>(null) }
     var confirmaSenhaError by remember { mutableStateOf<String?>(null) }
 
@@ -193,6 +195,20 @@ fun CadastroScreen(
                     keyboardType = KeyboardType.Email,
                     isError = confirmaEmailError != null,
                     supportingText = confirmaEmailError
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Campo CPF
+                CadastroTextField(
+                    value = CPF,
+                    onValueChange = {
+                        CPF = it
+
+                    },
+                    label = "CPF",
+                    keyboardType = KeyboardType.Number,
+                    isError = cpfError != null,
+                    supportingText = cpfError
                 )
                 Spacer(modifier = Modifier.height(12.dp))
 
