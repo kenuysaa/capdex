@@ -91,7 +91,7 @@ dependencies {
     implementation(libs.maps.compose)
     implementation(libs.play.services.maps)
     implementation(libs.play.services.location)
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.3")
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
 
     // Firebase
     implementation(platform(libs.firebase.bom))
