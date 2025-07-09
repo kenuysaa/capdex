@@ -14,3 +14,5 @@ A aplicação utiliza o Google Maps SDK para o rastreamento em tempo real da loc
 * **Plataforma:** Android
 * **Linguagem de Programação:** Kotlin
 * **Mapeamento:** Google Maps SDK
+
+

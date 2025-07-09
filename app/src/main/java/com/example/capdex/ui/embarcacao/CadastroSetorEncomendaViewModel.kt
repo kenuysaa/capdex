@@ -5,12 +5,11 @@ import androidx.lifecycle.viewModelScope
 import com.example.capdex.data.model.Encomenda
 import com.example.capdex.data.repository.EncRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import jakarta.inject.Inject
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 // Estado da UI para o cadastro de encomenda
 data class CadastroSetorEncomendaUiState(
@@ -86,7 +85,3 @@ class CadastroSetorEncomendaViewModel @Inject constructor(
         return System.currentTimeMillis().toString()
     }
 }
-
-annotation class Inject
-
-annotation class HiltViewModel
