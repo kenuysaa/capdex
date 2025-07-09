@@ -3,6 +3,7 @@ package com.example.capdex.ui.map
 import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -11,6 +12,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -30,7 +33,6 @@ fun MapPreviewScreen(
     val currentLocation by mapViewModel.currentLocation.collectAsState()
     val cameraPositionState = rememberCameraPositionState()
 
-    // Launcher para pedir permissões
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions(),
         onResult = { permissions ->
@@ -40,7 +42,6 @@ fun MapPreviewScreen(
         }
     )
 
-    // Solicita permissão e move para localização padrão
     LaunchedEffect(Unit) {
         permissionLauncher.launch(
             arrayOf(
@@ -56,7 +57,6 @@ fun MapPreviewScreen(
         )
     }
 
-    // Atualiza a câmera para o local atual se for proprietário
     LaunchedEffect(currentLocation, isProprietario) {
         if (isProprietario && currentLocation != null) {
             cameraPositionState.animate(
@@ -66,83 +66,105 @@ fun MapPreviewScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text("Visualização do Mapa") },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
-                    }
-                }
+    // 🔽 Gradiente aplicado no fundo
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        Color(0xFF3E6340),
+                        Color(0xFF9BFBE8),
+                        Color(0xFFC9FFF4),
+                        Color(0xFFC9FFF4),
+                        Color(0xFFC9FFF4)
+                    )
+                )
             )
-        }
-    ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            GoogleMap(
-                modifier = Modifier.fillMaxSize(),
-                cameraPositionState = cameraPositionState,
-                properties = MapProperties(
-                    isMyLocationEnabled = true
-                )
-            ) {
-                // Marcador para Porto Novo
-                val portoNovoPosition = LatLng(-3.150333, -58.443555)
-                val portoNovoState = rememberMarkerState(position = portoNovoPosition)
-                MarkerInfoWindow(
-                    state = portoNovoState,
-                    title = "Porto Novo",
-                    snippet = "Porto Novo",
-                    onClick = {
-                        portoNovoState.showInfoWindow()
-                        true
-                    }
-                )
-
-                // Marcador para Porto Velho
-                val portoVelhoPosition = LatLng(-3.146670, -58.451048)
-                val portoVelhoState = rememberMarkerState(position = portoVelhoPosition)
-                MarkerInfoWindow(
-                    state = portoVelhoState,
-                    title = "Porto Velho",
-                    snippet = "Porto Velho",
-                    onClick = {
-                        portoVelhoState.showInfoWindow()
-                        true
-                    }
-                )
-
-                // Exibe os InfoWindows ao carregar
-                LaunchedEffect(Unit) {
-                    portoNovoState.showInfoWindow()
-                    portoVelhoState.showInfoWindow()
-                }
-            }
-
-            // Botão flutuante para centralizar na localização do usuário
-            if (isProprietario && currentLocation != null && locationPermissionGranted) {
-                val coroutineScope = rememberCoroutineScope()
-
-                FloatingActionButton(
-                    onClick = {
-                        coroutineScope.launch {
-                            cameraPositionState.animate(
-                                update = CameraUpdateFactory.newLatLngZoom(currentLocation!!, 16f),
-                                durationMs = 1000
+    ) {
+        Scaffold(
+            containerColor = Color.Transparent,
+            topBar = {
+                CenterAlignedTopAppBar(
+                    title = { Text("Visualização do Mapa") },
+                    navigationIcon = {
+                        IconButton(onClick = { navController.popBackStack() }) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Voltar"
                             )
                         }
                     },
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(16.dp)
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                        containerColor = Color.Transparent
+                    )
+                )
+            }
+        ) { paddingValues ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+            ) {
+                GoogleMap(
+                    modifier = Modifier.fillMaxSize(),
+                    cameraPositionState = cameraPositionState,
+                    properties = MapProperties(
+                        isMyLocationEnabled = locationPermissionGranted
+                    )
                 ) {
-                    Icon(Icons.Filled.MyLocation, contentDescription = "Minha Localização")
+                    // Porto Novo
+                    val portoNovoPosition = LatLng(-3.150333, -58.443555)
+                    val portoNovoState = rememberMarkerState(position = portoNovoPosition)
+                    MarkerInfoWindow(
+                        state = portoNovoState,
+                        title = "Porto Novo",
+                        snippet = "Porto Novo",
+                        onClick = {
+                            portoNovoState.showInfoWindow()
+                            true
+                        }
+                    )
+
+                    // Porto Velho
+                    val portoVelhoPosition = LatLng(-3.146670, -58.451048)
+                    val portoVelhoState = rememberMarkerState(position = portoVelhoPosition)
+                    MarkerInfoWindow(
+                        state = portoVelhoState,
+                        title = "Porto Velho",
+                        snippet = "Porto Velho",
+                        onClick = {
+                            portoVelhoState.showInfoWindow()
+                            true
+                        }
+                    )
+
+                    LaunchedEffect(Unit) {
+                        portoNovoState.showInfoWindow()
+                        portoVelhoState.showInfoWindow()
+                    }
                 }
 
+                // Botão flutuante de localização
+                if (isProprietario && currentLocation != null && locationPermissionGranted) {
+                    val coroutineScope = rememberCoroutineScope()
+
+                    FloatingActionButton(
+                        onClick = {
+                            coroutineScope.launch {
+                                cameraPositionState.animate(
+                                    update = CameraUpdateFactory.newLatLngZoom(currentLocation!!, 16f),
+                                    durationMs = 1000
+                                )
+                            }
+                        },
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(16.dp)
+                    ) {
+                        Icon(Icons.Filled.MyLocation, contentDescription = "Minha Localização")
+                    }
+                }
             }
         }
     }
