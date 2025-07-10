@@ -15,7 +15,7 @@ import javax.inject.Inject
 data class CadastroEmbarcacaoUiState(
     val nomeEmbarcacao: String = "",
     val cnpj: String = "",
-    val img: String = "",
+    val imagemResId: Int = 0,
     val nomeSetor: String = "",
     val senhaSetor: String = "",
     val pontoPartida: String = "",
@@ -38,9 +38,10 @@ class CadastroEmbarcacaoViewModel @Inject constructor(
     fun onCnpjChanged(value: String) {
         _uiState.update { it.copy(cnpj = value) }
     }
-    fun onImgChanged(value: String) {
-        _uiState.update { it.copy(img = value) }
+    fun onImagemResIdChanged(value: Int) {
+        _uiState.update { it.copy(imagemResId = value) }
     }
+
     fun onNomeSetorChanged(value: String) {
         _uiState.update { it.copy(nomeSetor = value) }
     }
@@ -65,7 +66,7 @@ class CadastroEmbarcacaoViewModel @Inject constructor(
             idEmbarcacao = gerarIdUnico(),
             nomeEmbarcacao = state.nomeEmbarcacao,
             cnpj = state.cnpj,
-            img = state.img,
+            imagemResId = state.imagemResId,
             nomeSetor = state.nomeSetor,
             senhaSetor = state.senhaSetor,
             pontoPartida = state.pontoPartida,

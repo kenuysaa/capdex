@@ -2,6 +2,7 @@ package com.example.capdex.ui.embarcacao
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.capdex.R
 import com.example.capdex.data.model.Embarcacao
 import com.example.capdex.data.repository.EmbarRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -11,7 +12,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-// Estado da UI para a lista de embarcações
 data class ListaEmbarcacoesUiState(
     val embarcacoes: List<Embarcacao> = emptyList(),
     val isLoading: Boolean = false,
@@ -28,16 +28,46 @@ class ListaEmbarcacoesViewModel @Inject constructor(
     fun carregarEmbarcacoes(proprietarioId: String) {
         _uiState.update { it.copy(isLoading = true, errorMessage = null) }
         viewModelScope.launch {
-            try {
-                val lista = embarRepository.getEmbarcacoesByProprietario(proprietarioId)
-                _uiState.update { it.copy(embarcacoes = lista, isLoading = false) }
-            } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, errorMessage = e.localizedMessage ?: "Erro ao carregar embarcações") }
-            }
+            // Simula carregamento
+            kotlinx.coroutines.delay(1000)
+
+            val lista = listOf(
+                Embarcacao(
+                    idEmbarcacao = "1",
+                    nomeEmbarcacao = "Barco Correa Filho",
+                    cnpj = "00000000000191",
+                    imagemResId = R.drawable.barco_1,
+                    nomeSetor = "Setor 1",
+                    senhaSetor = "senha123",
+                    pontoPartida = "Parintins",
+                    pontoChegada = "Manaus",
+                    proprietarioId = proprietarioId
+                ),
+                Embarcacao(
+                    idEmbarcacao = "2",
+                    nomeEmbarcacao = "Barco Príncipe Manoel",
+                    cnpj = "00000000000272",
+                    imagemResId = R.drawable.barco_2,
+                    nomeSetor = "Setor 2",
+                    senhaSetor = "senha456",
+                    pontoPartida = "Pará",
+                    pontoChegada = "Manaus",
+                    proprietarioId = proprietarioId
+                ),
+                Embarcacao(
+                    idEmbarcacao = "3",
+                    nomeEmbarcacao = "Barco CapBarco",
+                    cnpj = "00000000000363",
+                    imagemResId = R.drawable.barco_3,
+                    nomeSetor = "Setor 3",
+                    senhaSetor = "senha789",
+                    pontoPartida = "Parintins",
+                    pontoChegada = "Manaus",
+                    proprietarioId = proprietarioId
+                )
+            )
+
+            _uiState.update { it.copy(embarcacoes = lista, isLoading = false) }
         }
     }
-
-    fun resetError() {
-        _uiState.update { it.copy(errorMessage = null) }
-    }
-} 
+}

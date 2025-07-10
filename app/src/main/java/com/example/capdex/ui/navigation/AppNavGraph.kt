@@ -10,8 +10,10 @@ import androidx.navigation.compose.composable
 import com.example.capdex.ui.auth.CadastroScreen
 import com.example.capdex.ui.auth.LoginScreen
 import com.example.capdex.ui.auth.LogoutScreen
+import com.example.capdex.ui.embarcacao.TelaConfiguracao
 import com.example.capdex.ui.main.MainScreen
 import com.example.capdex.ui.map.MapPreviewScreen
+import com.example.capdex.ui.embarcacao.TelaPacotes
 
 @Composable
 fun AppNavGraph(navController: NavHostController) {
@@ -40,9 +42,13 @@ fun AppNavGraph(navController: NavHostController) {
 
         composable(Screen.Main.route) {
             val mainScreenViewModel = hiltViewModel<com.example.capdex.ui.main.MainScreenViewModel>()
+            val mapViewModel = hiltViewModel<com.example.capdex.ui.map.MapViewModel>()
+            val listaEmbarcacoesViewModel = hiltViewModel<com.example.capdex.ui.embarcacao.ListaEmbarcacoesViewModel>()
+
             MainScreen(
                 navController = navController,
-                mainScreenViewModel = mainScreenViewModel
+                mapViewModel = mapViewModel,
+                listaEmbarcacoesViewModel = listaEmbarcacoesViewModel
             )
         }
 
@@ -65,6 +71,12 @@ fun AppNavGraph(navController: NavHostController) {
                     }
                 }
             )
+        }
+        composable(Screen.Carga.route) {
+            TelaPacotes(navController = navController)
+        }
+        composable(Screen.Config.route) {
+            TelaConfiguracao(navController = navController)
         }
     }
 }

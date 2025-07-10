@@ -6,4 +6,6 @@ sealed class Screen(val route: String) {
     object Main : Screen("main")
     object Map : Screen("map")
     object Logout : Screen("logout")
+    object Carga : Screen("carga")
+    object Config : Screen("config")
 }

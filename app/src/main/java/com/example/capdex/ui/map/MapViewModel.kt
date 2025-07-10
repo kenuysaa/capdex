@@ -1,156 +1,107 @@
-package com.example.capdex.ui.main
+package com.example.capdex.ui.map
 
-import android.Manifest
-import android.content.pm.PackageManager
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavHostController
-import com.example.capdex.ui.map.MapViewModel
-import com.example.capdex.ui.navigation.Screen
+import android.location.Location
+import android.util.Log
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.capdex.data.location.LocationService
+import com.google.android.gms.maps.model.LatLng
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import com.example.capdex.data.model.Embarcacao
+import com.example.capdex.data.model.Localizacao
+import com.example.capdex.data.repository.EmbarRepository
+import javax.inject.Inject
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun MainScreen(
-    navController: NavHostController,
-    mainScreenViewModel: MainScreenViewModel = hiltViewModel()
-) {
-    val context = LocalContext.current
-    val mapViewModel: MapViewModel = hiltViewModel()
-    val uiState by mainScreenViewModel.uiState.collectAsState()
+// Estado para exibir embarcações e localizações no mapa
+data class EmbarcacaoComLocalizacao(
+    val embarcacao: Embarcacao,
+    val localizacao: Localizacao?
+)
 
-    val locationPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestMultiplePermissions(),
-        onResult = { permissions ->
-            val fineGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true
-            val coarseGranted = permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
-            mapViewModel.handleLocationPermissionResult(fineGranted, coarseGranted)
+@HiltViewModel
+class MapViewModel @Inject constructor(
+    private val locationService: LocationService,
+    private val embarRepository: EmbarRepository
+) : ViewModel() {
 
-            if (fineGranted || coarseGranted) {
-                navController.navigate(Screen.Map.route)
+    val defaultLocation = com.google.android.gms.maps.model.LatLng(-23.55052, -46.633308)
+
+    private val _currentLocation = MutableStateFlow<LatLng?>(null)
+    val currentLocation: StateFlow<LatLng?> = _currentLocation
+
+    private val _locationPermissionGranted = MutableStateFlow(false)
+    val locationPermissionGranted: StateFlow<Boolean> = _locationPermissionGranted.asStateFlow()
+
+    private val _embarcacoesComLocalizacao = MutableStateFlow<List<EmbarcacaoComLocalizacao>>(emptyList())
+    val embarcacoesComLocalizacao: StateFlow<List<EmbarcacaoComLocalizacao>> = _embarcacoesComLocalizacao
+
+    private val _isLoadingEmbarcacoes = MutableStateFlow(false)
+    val isLoadingEmbarcacoes: StateFlow<Boolean> = _isLoadingEmbarcacoes
+
+    private val _errorEmbarcacoes = MutableStateFlow<String?>(null)
+    val errorEmbarcacoes: StateFlow<String?> = _errorEmbarcacoes
+
+    fun startLocationUpdates() {
+        Log.d("MapViewModel", "startLocationUpdates chamado. Permissão concedida: ${_locationPermissionGranted.value}")
+        if (_locationPermissionGranted.value) {
+            locationService.setOnLocationUpdateListener { location ->
+                updateLocation(location)
             }
+            locationService.startLocationUpdates()
         }
-    )
-
-    LaunchedEffect(Unit) {
-        val hasFineLocationPermission = ContextCompat.checkSelfPermission(
-            context,
-            Manifest.permission.ACCESS_FINE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
-
-        val hasCoarseLocationPermission = ContextCompat.checkSelfPermission(
-            context,
-            Manifest.permission.ACCESS_COARSE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
-
-        mapViewModel.handleLocationPermissionResult(
-            fineGranted = hasFineLocationPermission,
-            coarseGranted = hasCoarseLocationPermission
-        )
     }
 
-    // Fundo gradiente da tela
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFF3E6340), // verde escuro
-                        Color(0xFF9BFBE8), // verde água
-                        Color(0xFFC9FFF4), // azul claro
-                        Color(0xFFC9FFF4),
-                        Color(0xFFC9FFF4)
-                    )
-                )
-            )
-    ) {
-        Scaffold(
-            containerColor = Color.Transparent,
-            topBar = {
-                CenterAlignedTopAppBar(
-                    title = { Text("Menu") },
-                    navigationIcon = {
-                        IconButton(onClick = { navController.popBackStack() }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
-                        }
-                    },
-                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                        containerColor = Color.Transparent
-                    )
-                )
-            },
-            content = { paddingValues ->
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    if (uiState.isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(48.dp),
-                            color = Color.Black
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text("Carregando...", color = Color.Black)
-                    } else {
-                        Button(onClick = {
-                            val hasFineLocationPermission = ContextCompat.checkSelfPermission(
-                                context,
-                                Manifest.permission.ACCESS_FINE_LOCATION
-                            ) == PackageManager.PERMISSION_GRANTED
+    fun stopLocationUpdates() {
+        Log.d("MapViewModel", "Parando atualizações")
+        locationService.stopLocationUpdates()
+    }
 
-                            val hasCoarseLocationPermission = ContextCompat.checkSelfPermission(
-                                context,
-                                Manifest.permission.ACCESS_COARSE_LOCATION
-                            ) == PackageManager.PERMISSION_GRANTED
+    fun updateLocation(location: Location) {
+        _currentLocation.value = LatLng(location.latitude, location.longitude)
+    }
 
-                            val isPermissionGranted = hasFineLocationPermission || hasCoarseLocationPermission
-
-                            if (isPermissionGranted) {
-                                navController.navigate(Screen.Map.route)
-                            } else {
-                                locationPermissionLauncher.launch(
-                                    arrayOf(
-                                        Manifest.permission.ACCESS_FINE_LOCATION,
-                                        Manifest.permission.ACCESS_COARSE_LOCATION
-                                    )
-                                )
-                            }
-                        }) {
-                            Text("Ir para o Mapa")
-                        }
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        Button(onClick = {
-                            navController.navigate(Screen.Logout.route)
-                        }) {
-                            Text("Sair")
-                        }
-
-                        uiState.errorMessage?.let { message ->
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(message, color = MaterialTheme.colorScheme.error)
-                        }
-                    }
-                }
+    fun handleLocationPermissionResult(fineGranted: Boolean, coarseGranted: Boolean) {
+        val granted = fineGranted || coarseGranted
+        Log.d("MapViewModel", "Resultado da permissão: $granted (fine: $fineGranted, coarse: $coarseGranted)")
+        if (granted != _locationPermissionGranted.value) {
+            _locationPermissionGranted.value = granted
+            if (granted) {
+                startLocationUpdates()
+            } else {
+                stopLocationUpdates()
+                _currentLocation.value = null
             }
-        )
+        }
+    }
+
+    fun carregarEmbarcacoesNoMapa() {
+        _isLoadingEmbarcacoes.value = true
+        _errorEmbarcacoes.value = null
+        viewModelScope.launch {
+            try {
+                val embarcacoes = embarRepository.getTodasEmbarcacoes()
+                val lista = embarcacoes.map { embarcacao ->
+                    val localizacoes = embarRepository.getLatestLocalizacoes(embarcacao.idEmbarcacao, 1)
+                    EmbarcacaoComLocalizacao(
+                        embarcacao = embarcacao,
+                        localizacao = localizacoes.firstOrNull()
+                    )
+                }
+                _embarcacoesComLocalizacao.value = lista
+                _isLoadingEmbarcacoes.value = false
+            } catch (e: Exception) {
+                _errorEmbarcacoes.value = e.localizedMessage ?: "Erro ao carregar embarcações"
+                _isLoadingEmbarcacoes.value = false
+            }
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        stopLocationUpdates()
     }
 }

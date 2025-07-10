@@ -4,7 +4,7 @@ data class Embarcacao(
     val idEmbarcacao: String = "",
     val nomeEmbarcacao: String = "",
     val cnpj: String = "",
-    val img: String = "",
+    val imagemResId: Int = 0,
     val nomeSetor: String = "",
     val senhaSetor: String = "",
     val pontoPartida: String = "",
