@@ -74,9 +74,7 @@ fun AppNavGraph(navController: NavHostController) {
 
         // 👇 4. ADIÇÃO DA NOVA TELA COMO DESTINO
         composable(Screen.Dono.route) {
-            TelaListaDono(
-                // navController = navController // Passe o navController se precisar dele dentro da tela
-            )
+            TelaListaDono(navController = navController) // ✅ Passe o navController aqui
         }
 
         // --- Suas outras rotas continuam iguais ---
