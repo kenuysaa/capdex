@@ -2,93 +2,66 @@ package com.example.capdex.ui.auth
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.capdex.R
 
 @Composable
 fun LoginScreen(
-    authViewModel: AuthViewModel = hiltViewModel(),
+    authViewModel: AuthViewModel,
     onNavigateToCadastro: () -> Unit,
-    onLoginSuccess: (String) -> Unit
+    onLoginSuccess: (Boolean) -> Unit
 ) {
     val uiState by authViewModel.uiState.collectAsState()
-
     var senhaVisivel by rememberSaveable { mutableStateOf(false) }
-    var hasNavigatedOnSuccess by remember { mutableStateOf(false) }
 
-    // Navegação ao sucesso
-    LaunchedEffect(key1 = uiState.userUid, key2 = uiState.successMessage) {
-        if (uiState.userUid != null && uiState.successMessage != null && !hasNavigatedOnSuccess) {
-            onLoginSuccess(uiState.userUid!!)
-            hasNavigatedOnSuccess = true
+    LaunchedEffect(key1 = uiState.userUid) {
+        if (uiState.userUid != null) {
+            onLoginSuccess(uiState.isDono == true)
         }
     }
 
-    // Fundo da tela
+    // ✅ 1. ADICIONADO O BOX COM IMAGEM DE FUNDO E GRADIENTE
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(verdeFundoEscuro)
     ) {
         Image(
-            painter = painterResource(id = R.drawable.fundologin),
+            painter = painterResource(id = R.drawable.fundocadastro),
             contentDescription = "Fundo",
             contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxSize()
-                .align(Alignment.BottomCenter)
+            modifier = Modifier.fillMaxSize().align(Alignment.BottomCenter)
         )
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 32.dp, vertical = 16.dp),
+                .padding(horizontal = 32.dp),
+            verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(80.dp))
 
-            // Cartão do formulário
+            // ✅ 2. ADICIONADO O CONTAINER TRANSLÚCIDO PARA O FORMULÁRIO
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -98,28 +71,26 @@ fun LoginScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "Login",
+                    "Login",
                     color = corTextoBranco,
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(bottom = 24.dp)
                 )
 
-                // Campo de e-mail
+                // Campo de E-mail
                 CadastroTextField(
                     value = uiState.email,
                     onValueChange = { authViewModel.onEmailChanged(it) },
-                    label = "E-mail",
-                    keyboardType = KeyboardType.Email
+                    label = "E-mail"
                 )
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-                // Campo de senha
+                // ✅ 3. CAMPO DE SENHA AGORA TEM O ÍCONE DE VISIBILIDADE
                 CadastroTextField(
                     value = uiState.password,
                     onValueChange = { authViewModel.onPasswordChanged(it) },
                     label = "Senha",
-                    keyboardType = KeyboardType.Password,
                     visualTransformation = if (senhaVisivel) VisualTransformation.None else PasswordVisualTransformation(),
                     trailingIcon = {
                         val icon = if (senhaVisivel) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
@@ -133,45 +104,36 @@ fun LoginScreen(
 
                 if (uiState.isLoading) {
                     CircularProgressIndicator(color = corTextoBranco)
-                    Spacer(modifier = Modifier.height(12.dp))
                 }
 
-                // Erro geral
-                uiState.errorMessage?.let {
+                uiState.errorMessage?.let { error ->
                     Text(
-                        text = it,
+                        text = error,
                         color = MaterialTheme.colorScheme.error,
-                        fontSize = 14.sp,
-                        modifier = Modifier.padding(bottom = 8.dp)
+                        modifier = Modifier.padding(top = 8.dp)
                     )
                 }
-
-
             }
+
             Spacer(modifier = Modifier.height(25.dp))
-            // Botão de login
+
+            // Botão Entrar
             Button(
                 onClick = { authViewModel.loginUser() },
-                enabled = !uiState.isLoading,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
+                modifier = Modifier.fillMaxWidth().height(50.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = corBotaoPrincipal,
                     contentColor = corTextoBotaoPrincipal
-                )
+                ),
+                enabled = !uiState.isLoading
             ) {
-                Text("Entrar", fontSize = 18.sp)
+                Text(text = "Entrar", fontSize = 18.sp)
             }
 
-            // Link para cadastro
+            // Botão Cadastrar
             TextButton(onClick = onNavigateToCadastro, enabled = !uiState.isLoading) {
-                Text(
-                    text = "Não tem uma conta? Cadastre-se",
-                    color = corTextoBranco,
-                    fontSize = 16.sp
-                )
+                Text(text = "Não tenho uma conta, Cadastrar", color = corTextoBranco, fontSize = 16.sp)
             }
         }
     }

@@ -4,20 +4,25 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.capdex.ui.auth.AuthViewModel
 import com.example.capdex.ui.auth.CadastroScreen
 import com.example.capdex.ui.auth.LoginScreen
 import com.example.capdex.ui.auth.LogoutScreen
+import com.example.capdex.ui.telas.TelaListaDono
+import com.example.capdex.ui.embarcacao.ListaEmbarcacoesViewModel
 import com.example.capdex.ui.embarcacao.TelaConfiguracao
+import com.example.capdex.ui.embarcacao.TelaPacotes
 import com.example.capdex.ui.main.MainScreen
 import com.example.capdex.ui.map.MapPreviewScreen
-import com.example.capdex.ui.embarcacao.TelaPacotes
+import com.example.capdex.ui.map.MapViewModel
 
 @Composable
 fun AppNavGraph(navController: NavHostController) {
-    val authViewModel = hiltViewModel<com.example.capdex.ui.auth.AuthViewModel>()
+    val authViewModel = hiltViewModel<AuthViewModel>()
 
     NavHost(
         navController = navController,
@@ -28,7 +33,15 @@ fun AppNavGraph(navController: NavHostController) {
             CadastroScreen(
                 authViewModel = authViewModel,
                 onNavigateToLogin = { navController.navigate(Screen.Login.route) },
-                onRegistrationSuccess = { navController.navigate(Screen.Main.route) }
+                // 👇 2. AJUSTE NA NAVEGAÇÃO APÓS CADASTRO
+                onRegistrationSuccess = { isDono ->
+                    val destination = if (isDono) Screen.Dono.route else Screen.Main.route
+                    navController.navigate(destination) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            inclusive = true
+                        }
+                    }
+                }
             )
         }
 
@@ -36,14 +49,21 @@ fun AppNavGraph(navController: NavHostController) {
             LoginScreen(
                 authViewModel = authViewModel,
                 onNavigateToCadastro = { navController.navigate(Screen.Cadastro.route) },
-                onLoginSuccess = { navController.navigate(Screen.Main.route) }
+                // 👇 3. AJUSTE NA NAVEGAÇÃO APÓS LOGIN
+                onLoginSuccess = { isDono ->
+                    val destination = if (isDono) Screen.Dono.route else Screen.Main.route
+                    navController.navigate(destination) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            inclusive = true
+                        }
+                    }
+                }
             )
         }
 
         composable(Screen.Main.route) {
-            val mainScreenViewModel = hiltViewModel<com.example.capdex.ui.main.MainScreenViewModel>()
-            val mapViewModel = hiltViewModel<com.example.capdex.ui.map.MapViewModel>()
-            val listaEmbarcacoesViewModel = hiltViewModel<com.example.capdex.ui.embarcacao.ListaEmbarcacoesViewModel>()
+            val mapViewModel = hiltViewModel<MapViewModel>()
+            val listaEmbarcacoesViewModel = hiltViewModel<ListaEmbarcacoesViewModel>()
 
             MainScreen(
                 navController = navController,
@@ -51,6 +71,15 @@ fun AppNavGraph(navController: NavHostController) {
                 listaEmbarcacoesViewModel = listaEmbarcacoesViewModel
             )
         }
+
+        // 👇 4. ADIÇÃO DA NOVA TELA COMO DESTINO
+        composable(Screen.Dono.route) {
+            TelaListaDono(
+                // navController = navController // Passe o navController se precisar dele dentro da tela
+            )
+        }
+
+        // --- Suas outras rotas continuam iguais ---
 
         composable(Screen.Map.route) {
             val mainScreenViewModel = hiltViewModel<com.example.capdex.ui.main.MainScreenViewModel>()
