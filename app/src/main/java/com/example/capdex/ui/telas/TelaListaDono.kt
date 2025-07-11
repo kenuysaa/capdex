@@ -1,4 +1,4 @@
-package com.example.capdex.ui.telas // Use o caminho correto do seu pacote
+package com.example.capdex.ui.telas
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -34,83 +34,118 @@ import androidx.navigation.NavHostController
 import com.example.capdex.R
 import com.example.capdex.ui.navigation.Screen
 
-// Modelo de dados e Item da lista (sem alteração)
+// Modelo de dados e Item da Lista (sem alteração)
 data class EmbarcacaoDono(val id: String, val nome: String, val status: String, val imagemResId: Int)
 @Composable
-fun EmbarcacaoDonoItem(embarcacao: EmbarcacaoDono, onEditClick: () -> Unit) { /* ... */ }
+fun EmbarcacaoDonoItem(embarcacao: EmbarcacaoDono, buttonText: String, onButtonClick: () -> Unit) { /* ... */ }
 
+// ✅ ASSINATURA DA FUNÇÃO ATUALIZADA PARA RECEBER O ESTADO
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TelaListaDono(navController: NavHostController) {
+fun TelaListaDono(
+    navController: NavHostController,
+    selectedIndex: Int,
+    onSelectedIndexChange: (Int) -> Unit,
+    isFabExpanded: Boolean,
+    onFabExpandedChange: (Boolean) -> Unit
+) {
     val embarcacoes = remember {
         listOf(
-            EmbarcacaoDono("1", "Barco Correa Filho", "Disponível", R.drawable.barco_1),
-            EmbarcacaoDono("2", "Barco Príncipe Manoel", "Em viagem", R.drawable.barco_2)
+            EmbarcacaoDono("1", "Barco Príncipe Manoel", "Em viagem", R.drawable.barco_2),
+            EmbarcacaoDono("2", "Barco Adrenalina", "Disponível", R.drawable.barco_1)
         )
     }
-    var isFabExpanded by remember { mutableStateOf(false) }
-    val selectedIndex = remember { mutableStateOf(0) }
 
-    // ✅ DEFINIÇÃO DO GRADIENTE
     val gradient = Brush.verticalGradient(
-        colors = listOf(
-            Color(0xFF3E6340),
-            Color(0xFF8DE9C3),
-            Color(0xFFB3F5DC)
-        )
+        colors = listOf(Color(0xFF3E6340), Color(0xFF8DE9C3), Color(0xFFB3F5DC))
     )
 
-    // ✅ ESTRUTURA DE FUNDO
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(gradient)
-    ) {
-        Scaffold(
-            // ✅ SCAFFOLD TRANSPARENTE PARA MOSTRAR O FUNDO
-            containerColor = Color.Transparent,
-            topBar = {
-                CenterAlignedTopAppBar(
-                    title = { Text("Minhas Embarcações", color = Color.White, fontWeight = FontWeight.Bold) },
-                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Transparent)
-                )
-            },
-            bottomBar = {
-                NavigationBar(
-                    modifier = Modifier
-                        .padding(horizontal = 24.dp, vertical = 16.dp)
-                        .height(68.dp)
-                        .clip(RoundedCornerShape(50)),
-                    containerColor = Color.White
-                ) {
-                    NavigationBarItem(icon = { Icon(Icons.Outlined.Sailing, "Embarcações") }, selected = selectedIndex.value == 0, onClick = { /* Já está aqui */ })
-                    NavigationBarItem(icon = { Icon(Icons.Outlined.Inventory2, "Pacotes") }, selected = selectedIndex.value == 1, onClick = { navController.navigate(Screen.Carga.route) })
-                    NavigationBarItem(icon = { Icon(Icons.Outlined.Settings, "Configurações") }, selected = selectedIndex.value == 2, onClick = { navController.navigate(Screen.Config.route) })
-                }
-            }
-        ) { innerPadding ->
-            // O Box aqui dentro não é mais necessário, o Scaffold já tem o padding
-            LazyColumn(
-                modifier = Modifier.padding(innerPadding), // Apenas aplica o padding
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+    Scaffold(
+        containerColor = Color.Transparent,
+        topBar = { /* ... */ },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { onFabExpandedChange(!isFabExpanded) },
+                shape = CircleShape,
+                containerColor = Color(0xFF3E6340)
             ) {
+                Icon(
+                    imageVector = if (isFabExpanded) Icons.Default.Close else Icons.Default.Add,
+                    contentDescription = "Menu de Ações",
+                    tint = Color.White
+                )
+            }
+        },
+        bottomBar = {
+            NavigationBar(
+                modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp).height(68.dp).clip(RoundedCornerShape(50)),
+                containerColor = Color.White
+            ) {
+                NavigationBarItem(
+                    icon = { Icon(Icons.Outlined.Sailing, "Embarcações") },
+                    selected = selectedIndex == 0,
+                    onClick = { onSelectedIndexChange(0) }
+                )
+                NavigationBarItem(
+                    icon = { Icon(Icons.Outlined.Inventory2, "Pacotes") },
+                    selected = selectedIndex == 1,
+                    onClick = {
+                        onSelectedIndexChange(1)
+                        navController.navigate(Screen.Carga.route)
+                    }
+                )
+                NavigationBarItem(
+                    icon = { Icon(Icons.Outlined.Settings, "Configurações") },
+                    selected = selectedIndex == 2,
+                    onClick = {
+                        onSelectedIndexChange(2)
+                        navController.navigate(Screen.Config.route)
+                    }
+                )
+            }
+        }
+    ) { innerPadding ->
+        Box(modifier = Modifier.fillMaxSize().background(gradient).padding(innerPadding)) {
+            LazyColumn(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)) {
                 items(embarcacoes) { embarcacao ->
-                    EmbarcacaoDonoItem(embarcacao = embarcacao, onEditClick = { /*TODO*/ })
+                    EmbarcacaoDonoItem(
+                        embarcacao = embarcacao,
+                        buttonText = "Editar",
+                        onButtonClick = { /*TODO*/ }
+                    )
                 }
             }
 
-            // Coluna para o FAB
             Column(
-                modifier = Modifier.fillMaxSize().padding(16.dp),
+                modifier = Modifier.fillMaxSize().padding(end = 16.dp, bottom = 90.dp), // Aumenta padding p/ não ficar sobre o FAB
                 horizontalAlignment = Alignment.End,
                 verticalArrangement = Arrangement.Bottom
             ) {
-                // ... Lógica do FAB ...
+                AnimatedVisibility(visible = isFabExpanded) {
+                    Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        FabOption(text = "Criar Rota", onClick = { /*TODO*/ })
+                        FabOption(text = "Criar Embarcação", onClick = { /*TODO*/ })
+                    }
+                }
             }
         }
     }
 }
 
-// Componente auxiliar FabOption (sem alteração)
+// ✅ DESIGN DO FABOPTION REVERTIDO PARA O MAIS SIMPLES
 @Composable
-fun FabOption(text: String, onClick: () -> Unit) { /* ... */ }
+fun FabOption(text: String, onClick: () -> Unit) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(text, color = Color.White, fontWeight = FontWeight.Bold)
+        FloatingActionButton(
+            onClick = onClick,
+            shape = CircleShape,
+            containerColor = Color.White,
+            contentColor = Color(0xFF3E6340),
+            modifier = Modifier.size(48.dp)
+        ) {}
+    }
+}

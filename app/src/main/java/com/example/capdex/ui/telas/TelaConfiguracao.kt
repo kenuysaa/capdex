@@ -1,5 +1,4 @@
-package com.example.capdex.ui.embarcacao
-
+package com.example.capdex.ui.telas
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -16,8 +15,6 @@ import androidx.compose.material.icons.outlined.Sailing
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,15 +26,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.example.capdex.R // Importe seu R
+import com.example.capdex.R
 import com.example.capdex.ui.navigation.Screen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TelaConfiguracao(navController: NavHostController) {
-
-    val selectedIndex = remember { mutableStateOf(2) } // 2 para "Configurações"
-
+fun TelaConfiguracao(
+    navController: NavHostController,
+    // ✅ Esta é a assinatura correta que o AppNavGraph espera
+    selectedIndex: Int,
+    onSelectedIndexChange: (Int) -> Unit
+) {
     val gradient = Brush.verticalGradient(
         colors = listOf(
             Color(0xFF3E6340),
@@ -51,21 +50,10 @@ fun TelaConfiguracao(navController: NavHostController) {
         containerColor = Color.Transparent,
         topBar = {
             CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        "Minha conta",
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                        fontSize = 24.sp
-                    )
-                },
+                title = { Text("Minha conta", fontWeight = FontWeight.Bold, color = Color.White) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Voltar",
-                            tint = Color.White
-                        )
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Voltar", tint = Color.White)
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -79,37 +67,28 @@ fun TelaConfiguracao(navController: NavHostController) {
                     .padding(horizontal = 24.dp, vertical = 16.dp)
                     .height(68.dp)
                     .clip(RoundedCornerShape(50)),
-                containerColor = Color.White,
-                tonalElevation = 4.dp
+                containerColor = Color.White
             ) {
-                // Navegação para Tela Principal
                 NavigationBarItem(
-                    icon = { Icon(Icons.Outlined.Sailing, contentDescription = "Embarcações") },
-                    selected = selectedIndex.value == 0,
+                    icon = { Icon(Icons.Outlined.Sailing, "Embarcações") },
+                    selected = selectedIndex == 0,
                     onClick = {
-                        selectedIndex.value = 0
-                        navController.navigate(Screen.Main.route) {
-                            popUpTo(Screen.Main.route) { inclusive = true }
-                        }
-                    },
-                    alwaysShowLabel = false
+                        onSelectedIndexChange(0)
+                        navController.popBackStack()
+                    }
                 )
-                // Navegação para Pacotes
                 NavigationBarItem(
-                    icon = { Icon(Icons.Outlined.Inventory2, contentDescription = "Pacotes") },
-                    selected = selectedIndex.value == 1,
+                    icon = { Icon(Icons.Outlined.Inventory2, "Pacotes") },
+                    selected = selectedIndex == 1,
                     onClick = {
-                        selectedIndex.value = 1
+                        onSelectedIndexChange(1)
                         navController.navigate(Screen.Carga.route)
-                    },
-                    alwaysShowLabel = false
+                    }
                 )
-                // Item atual
                 NavigationBarItem(
-                    icon = { Icon(Icons.Outlined.Settings, contentDescription = "Configurações") },
-                    selected = selectedIndex.value == 2,
-                    onClick = { /* Já está nesta tela */ },
-                    alwaysShowLabel = false
+                    icon = { Icon(Icons.Outlined.Settings, "Configurações") },
+                    selected = selectedIndex == 2,
+                    onClick = { onSelectedIndexChange(2) }
                 )
             }
         }
@@ -122,20 +101,15 @@ fun TelaConfiguracao(navController: NavHostController) {
                 .padding(horizontal = 24.dp)
         ) {
             Spacer(modifier = Modifier.height(16.dp))
-
-            // Seção do Perfil
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                // TODO: Substitua 'profile_placeholder' pelo nome da sua imagem de capivara
                 Image(
-                    painter = painterResource(id = R.drawable.perfil),
+                    painter = painterResource(id = R.drawable.profile_placeholder),
                     contentDescription = "Foto de Perfil",
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .size(80.dp)
-                        .clip(CircleShape)
+                    modifier = Modifier.size(80.dp).clip(CircleShape)
                 )
                 Spacer(modifier = Modifier.width(16.dp))
                 Column {
@@ -143,44 +117,29 @@ fun TelaConfiguracao(navController: NavHostController) {
                     Text("karloskook@gmail.com", color = Color.White.copy(alpha = 0.8f))
                 }
             }
-
             Spacer(modifier = Modifier.height(16.dp))
-
             Button(
-                onClick = { /* TODO: Ação para editar perfil */ },
+                onClick = { /* Ação para editar perfil */ },
                 shape = RoundedCornerShape(50),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.White),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Editar Perfil", color = Color.DarkGray, fontWeight = FontWeight.Bold)
             }
-
             Spacer(modifier = Modifier.height(40.dp))
-
-            // Seção de Opções
             Text("Opções", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 22.sp)
             Spacer(modifier = Modifier.height(16.dp))
-
-            // Opção Suporte
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { /* Ação para Suporte */ }
-                    .padding(vertical = 8.dp)
+                modifier = Modifier.fillMaxWidth().clickable { /* Ação para Suporte */ }.padding(vertical = 8.dp)
             ) {
                 Icon(Icons.Default.Info, contentDescription = "Suporte", tint = Color.White)
                 Spacer(modifier = Modifier.width(16.dp))
                 Text("Suporte", color = Color.White, fontSize = 18.sp)
             }
-
-            // Opção Sair
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { navController.navigate(Screen.Logout.route) } // Navega para Logout
-                    .padding(vertical = 8.dp)
+                modifier = Modifier.fillMaxWidth().clickable { navController.navigate(Screen.Logout.route) }.padding(vertical = 8.dp)
             ) {
                 Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Sair", tint = Color.White)
                 Spacer(modifier = Modifier.width(16.dp))
