@@ -28,6 +28,9 @@ import com.example.capdex.data.model.Pacote
 import com.example.capdex.ui.navigation.Screen
 import com.example.capdex.data.model.PacotesViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.capdex.ui.encomenda.ListaEncomendasRemetenteViewModel
+import com.example.capdex.ui.encomenda.ListaEncomendasDestinatarioViewModel
+import com.example.capdex.ui.auth.AuthViewModel
 
 @Composable
 fun PacoteItem(pacote: Pacote, mostrarSetaParaBaixo: Boolean) {
@@ -72,14 +75,30 @@ fun TelaPacotes(
     navController: NavHostController,
     selectedIndex: Int,
     onSelectedIndexChange: (Int) -> Unit,
-    viewModel: PacotesViewModel = hiltViewModel()
+    authViewModel: AuthViewModel = hiltViewModel(),
+    viewModelRemetente: ListaEncomendasRemetenteViewModel = hiltViewModel(),
+    viewModelDestinatario: ListaEncomendasDestinatarioViewModel = hiltViewModel()
 ) {
-    val enviados by viewModel.pacotesEnviados.collectAsState()
-    val recebidos by viewModel.pacotesRecebidos.collectAsState()
-
     var tabIndex by remember { mutableStateOf(0) }
-    val tabs = listOf("Enviados", "Para você")
+    val tabs = listOf("Enviados", "Recebidos")
     val gradient = Brush.verticalGradient(colors = listOf(Color(0xFF3E6340), Color(0xFF8DE9C3), Color(0xFFB3F5DC)))
+
+    val authUiState by authViewModel.uiState.collectAsState()
+    val cpfUsuario = authUiState.cpf
+
+    val uiStateRemetente by viewModelRemetente.uiState.collectAsState()
+    val uiStateDestinatario by viewModelDestinatario.uiState.collectAsState()
+
+    // Buscar encomendas ao trocar de aba ou quando o CPF mudar
+    LaunchedEffect(tabIndex, cpfUsuario) {
+        if (cpfUsuario.isNotBlank()) {
+            if (tabIndex == 0) {
+                viewModelRemetente.carregarEncomendasPorRemetente(cpfUsuario)
+            } else {
+                viewModelDestinatario.carregarEncomendasPorDestinatario(cpfUsuario)
+            }
+        }
+    }
 
     Scaffold(
         containerColor = Color.Transparent,
@@ -155,16 +174,41 @@ fun TelaPacotes(
                 }
             }
 
-            LazyColumn(modifier = Modifier.padding(top = 16.dp)) {
-                val pacotesParaExibir = if (tabIndex == 0) enviados else recebidos
+            val encomendas = if (tabIndex == 0) uiStateRemetente.encomendas else uiStateDestinatario.encomendas
+            val isLoading = if (tabIndex == 0) uiStateRemetente.isLoading else uiStateDestinatario.isLoading
+            val errorMessage = if (tabIndex == 0) uiStateRemetente.errorMessage else uiStateDestinatario.errorMessage
 
-                if (pacotesParaExibir.isEmpty()) {
-                    item {
-                        Text("Nenhum pacote encontrado", color = Color.White, modifier = Modifier.padding(16.dp))
-                    }
-                } else {
-                    items(pacotesParaExibir) { pacote ->
-                        PacoteItem(pacote = pacote, mostrarSetaParaBaixo = (tabIndex == 1))
+            if (isLoading) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = Color.White)
+                }
+            } else if (!errorMessage.isNullOrBlank()) {
+                Text(errorMessage, color = Color.Red, modifier = Modifier.padding(16.dp))
+            } else {
+                LazyColumn(modifier = Modifier.padding(top = 16.dp)) {
+                    if (encomendas.isEmpty()) {
+                        item {
+                            Text("Nenhuma encomenda encontrada", color = Color.White, modifier = Modifier.padding(16.dp))
+                        }
+                    } else {
+                        items(encomendas) { encomenda ->
+                            // Aqui você pode criar um card customizado para a encomenda
+                            // Exemplo simples:
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 8.dp),
+                                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.1f))
+                            ) {
+                                Column(modifier = Modifier.padding(16.dp)) {
+                                    Text("Encomenda: ${encomenda.encomenda}", color = Color.White, fontWeight = FontWeight.Bold)
+                                    Text("Status: ${encomenda.status}", color = Color.White)
+                                    Text("Embarcação: ${encomenda.embarcacaoId}", color = Color.White)
+                                    Text("Remetente: ${encomenda.remetenteCpf}", color = Color.White)
+                                    Text("Destinatário: ${encomenda.destinatarioCpf}", color = Color.White)
+                                }
+                            }
+                        }
                     }
                 }
             }
