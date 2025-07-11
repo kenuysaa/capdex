@@ -203,6 +203,30 @@ fun TelaListaDono(
                     }
                 }
             }
+
+            // Botão fixo para cadastrar encomenda
+            Box(
+                modifier = Modifier
+                    .fillMaxSize(),
+                contentAlignment = Alignment.BottomCenter
+            ) {
+                Button(
+                    onClick = { navController.navigate(Screen.CriarEncomenda.route) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 32.dp, vertical = 24.dp)
+                        .height(50.dp),
+                    shape = RoundedCornerShape(50),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.White)
+                ) {
+                    Text(
+                        text = "Cadastrar Encomenda",
+                        color = Color(0xFF3E6340),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
+                    )
+                }
+            }
         }
     }
 }
