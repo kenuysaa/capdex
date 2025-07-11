@@ -30,6 +30,14 @@ import com.example.capdex.data.repository.AuthRepository
 import com.example.capdex.ui.embarcacao.ListaEmbarcacoesViewModel
 import com.example.capdex.ui.navigation.Screen
 import com.example.capdex.ui.auth.AuthViewModel
+import com.example.capdex.data.location.LocationService
+import dagger.hilt.android.qualifiers.ApplicationContext
+import android.content.Context
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import kotlinx.coroutines.launch
 
 @Composable
 fun EmbarcacaoDonoItem(
@@ -79,6 +87,25 @@ fun EmbarcacaoDonoItem(
     }
 }
 
+@HiltViewModel
+class ProprietarioLocationViewModel @Inject constructor(
+    private val locationService: LocationService
+) : ViewModel() {
+
+    fun startLocationUpdates() {
+        locationService.startLocationUpdates()
+    }
+
+    fun stopLocationUpdates() {
+        locationService.stopLocationUpdates()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        stopLocationUpdates()
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TelaListaDono(
@@ -87,16 +114,27 @@ fun TelaListaDono(
     onSelectedIndexChange: (Int) -> Unit,
     isFabExpanded: Boolean,
     onFabExpandedChange: (Boolean) -> Unit,
-    authRepository: AuthRepository = androidx.hilt.navigation.compose.hiltViewModel<AuthViewModel>().authRepository
+    locationViewModel: ProprietarioLocationViewModel = hiltViewModel()
 ) {
+    val authViewModel: AuthViewModel = hiltViewModel()
     val viewModel: ListaEmbarcacoesViewModel = hiltViewModel()
+    val authUiState by authViewModel.uiState.collectAsState()
     val uiState by viewModel.uiState.collectAsState()
+    val proprietarioId = authUiState.userUid ?: ""
 
-    val proprietarioId = authRepository.getCurrentUserUid() ?: ""
-
-    LaunchedEffect(proprietarioId) {
+    // ✅ Inicializar localização para proprietários
+    LaunchedEffect(Unit) {
         if (proprietarioId.isNotEmpty()) {
+            // Iniciar atualizações de localização para o proprietário
+            locationViewModel.startLocationUpdates()
             viewModel.carregarEmbarcacoes(proprietarioId)
+        }
+    }
+
+    // Parar localização quando sair da tela
+    DisposableEffect(Unit) {
+        onDispose {
+            locationViewModel.stopLocationUpdates()
         }
     }
 

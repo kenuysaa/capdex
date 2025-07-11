@@ -83,7 +83,7 @@ class LocationService @Inject constructor( // Adicione @Inject aqui
             val deviceModel = Build.MODEL
 
             val locationData = hashMapOf(
-                "deviceModel" to deviceModel, // Adicionando o modelo do dispositivo
+                "deviceModel" to deviceModel,
                 "latitude" to location.latitude,
                 "longitude" to location.longitude,
                 "timestamp" to Date(),
@@ -91,7 +91,7 @@ class LocationService @Inject constructor( // Adicione @Inject aqui
                 "speed" to location.speed
             )
 
-            // Salvar no Firestore
+            // Salvar no Firestore na coleção locations (mantém compatibilidade)
             firestore.collection("locations")
                 .document()
                 .set(locationData)
@@ -104,9 +104,56 @@ class LocationService @Inject constructor( // Adicione @Inject aqui
                 .child("${Date().time}.json")
 
             storageRef.putBytes(locationJson.toByteArray()).await()
+
+            // ✅ NOVO: Salvar localização nas embarcações do proprietário
+            saveLocationToProprietarioEmbarcacoes(location)
         } catch (e: Exception) {
             Log.e("LocationService", "Erro ao salvar localização no Firebase", e)
             e.printStackTrace()
+        }
+    }
+
+    private suspend fun saveLocationToProprietarioEmbarcacoes(location: Location) {
+        try {
+            // Buscar o usuário atual
+            val currentUser = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
+            if (currentUser == null) {
+                Log.d("LocationService", "Usuário não logado, pulando salvamento nas embarcações")
+                return
+            }
+
+            val proprietarioId = currentUser.uid
+            Log.d("LocationService", "Salvando localização para embarcações do proprietário: $proprietarioId")
+
+            // Buscar todas as embarcações do proprietário
+            val embarcacoes = embarRepository.getEmbarcacoesByProprietario(proprietarioId)
+            
+            if (embarcacoes.isEmpty()) {
+                Log.d("LocationService", "Proprietário não possui embarcações cadastradas")
+                return
+            }
+
+            // Criar objeto Localizacao
+            val localizacao = com.example.capdex.data.model.Localizacao(
+                latitude = location.latitude,
+                longitude = location.longitude,
+                accuracy = location.accuracy,
+                speed = location.speed,
+                timestamp = System.currentTimeMillis()
+            )
+
+            // Salvar localização para cada embarcação do proprietário
+            embarcacoes.forEach { embarcacao ->
+                try {
+                    embarRepository.addLocalizacao(embarcacao.idEmbarcacao, localizacao)
+                    Log.d("LocationService", "Localização salva para embarcação: ${embarcacao.nomeEmbarcacao}")
+                } catch (e: Exception) {
+                    Log.e("LocationService", "Erro ao salvar localização para embarcação ${embarcacao.idEmbarcacao}", e)
+                }
+            }
+
+        } catch (e: Exception) {
+            Log.e("LocationService", "Erro ao salvar localização nas embarcações do proprietário", e)
         }
     }
 }
