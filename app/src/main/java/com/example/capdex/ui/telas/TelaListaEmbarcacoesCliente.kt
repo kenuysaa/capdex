@@ -23,6 +23,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.example.capdex.ui.embarcacao.ListaEmbarcacoesViewModel
 import com.example.capdex.ui.components.EmbarcacaoCard
+import com.example.capdex.ui.navigation.Screen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,6 +53,15 @@ fun TelaListaEmbarcacoesCliente(
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Transparent)
             )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { navController.navigate(Screen.Map.route) },
+                containerColor = Color(0xFF3E6340),
+                contentColor = Color.White
+            ) {
+                Icon(Icons.Default.LocationOn, contentDescription = "Ver no mapa")
+            }
         }
     ) { innerPadding ->
         Box(
