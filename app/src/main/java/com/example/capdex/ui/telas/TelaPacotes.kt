@@ -32,6 +32,11 @@ import com.example.capdex.ui.encomenda.ListaEncomendasRemetenteViewModel
 import com.example.capdex.ui.encomenda.ListaEncomendasDestinatarioViewModel
 import com.example.capdex.ui.auth.AuthViewModel
 import com.example.capdex.ui.telas.PacotesCompletosViewModel
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+
 
 @Composable
 fun PacoteItem(pacote: Pacote, mostrarSetaParaBaixo: Boolean) {
