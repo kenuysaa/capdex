@@ -35,4 +35,16 @@ class ListaEmbarcacoesViewModel @Inject constructor(
             }
         }
     }
+
+    fun carregarTodasEmbarcacoes() {
+        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+        viewModelScope.launch {
+            try {
+                val lista = embarRepository.getTodasEmbarcacoes()
+                _uiState.update { it.copy(embarcacoes = lista, isLoading = false) }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(errorMessage = e.message ?: "Erro desconhecido", isLoading = false) }
+            }
+        }
+    }
 }
