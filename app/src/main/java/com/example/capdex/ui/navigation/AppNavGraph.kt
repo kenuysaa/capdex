@@ -66,13 +66,13 @@ fun AppNavGraph(navController: NavHostController) {
             )
         }
 
-        composable(Screen.Main.route) {
+        composable(Screen.Main.route) { // ou a rota correspondente
             val listaEmbarcacoesViewModel = hiltViewModel<ListaEmbarcacoesViewModel>()
-            MainScreen(
+            TelaListaEmbarcacoesCliente(
                 navController = navController,
-                listaEmbarcacoesViewModel = listaEmbarcacoesViewModel,
-                selectedIndex = selectedIndex,
-                onSelectedIndexChange = { newIndex -> selectedIndex = newIndex }
+                viewModel = listaEmbarcacoesViewModel,
+                selectedIndex = selectedIndex, // Passando o estado
+                onSelectedIndexChange = { newIndex -> selectedIndex = newIndex } // Passando a função
             )
         }
 

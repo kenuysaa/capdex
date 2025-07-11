@@ -1,4 +1,4 @@
-package com.example.capdex.ui.telas
+package com.example.capdex.ui.telas // Verifique se o pacote está correto
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -7,7 +7,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.outlined.Inventory2
+import androidx.compose.material.icons.outlined.Sailing
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -19,23 +21,26 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import com.example.capdex.ui.embarcacao.ListaEmbarcacoesViewModel
 import com.example.capdex.ui.components.EmbarcacaoCard
+import com.example.capdex.ui.embarcacao.ListaEmbarcacoesViewModel
 import com.example.capdex.ui.navigation.Screen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TelaListaEmbarcacoesCliente(
     navController: NavHostController,
-    viewModel: ListaEmbarcacoesViewModel = hiltViewModel()
+    viewModel: ListaEmbarcacoesViewModel = hiltViewModel(),
+    // ✅ 1. PARÂMETROS ADICIONADOS PARA CONTROLAR A BARRA DE NAVEGAÇÃO
+    selectedIndex: Int,
+    onSelectedIndexChange: (Int) -> Unit
 ) {
     val uiState = viewModel.uiState.collectAsState().value
 
     LaunchedEffect(Unit) {
-        viewModel.carregarTodasEmbarcacoes()
+        // Esta função agora deve vir do seu repositório real
+        // viewModel.carregarTodasEmbarcacoes()
     }
 
     val gradient = Brush.verticalGradient(
@@ -47,6 +52,7 @@ fun TelaListaEmbarcacoesCliente(
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text("Embarcações", fontWeight = FontWeight.Bold, color = Color.White) },
+                // O botão de voltar pode ser opcional se esta for a tela principal do cliente
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Voltar", tint = Color.White)
@@ -55,15 +61,39 @@ fun TelaListaEmbarcacoesCliente(
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Transparent)
             )
         },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { navController.navigate(Screen.Map.route) },
-                containerColor = Color(0xFF3E6340),
-                contentColor = Color.White
+        // ✅ 2. BARRA DE NAVEGAÇÃO INFERIOR ADICIONADA
+        bottomBar = {
+            NavigationBar(
+                modifier = Modifier
+                    .padding(horizontal = 24.dp, vertical = 16.dp)
+                    .height(68.dp)
+                    .clip(RoundedCornerShape(50)),
+                containerColor = Color.White
             ) {
-                Icon(Icons.Default.LocationOn, contentDescription = "Ver no mapa")
+                NavigationBarItem(
+                    icon = { Icon(Icons.Outlined.Sailing, "Embarcações") },
+                    selected = selectedIndex == 0,
+                    onClick = { onSelectedIndexChange(0) } // Apenas atualiza o estado
+                )
+                NavigationBarItem(
+                    icon = { Icon(Icons.Outlined.Inventory2, "Pacotes") },
+                    selected = selectedIndex == 1,
+                    onClick = {
+                        onSelectedIndexChange(1)
+                        navController.navigate(Screen.Carga.route)
+                    }
+                )
+                NavigationBarItem(
+                    icon = { Icon(Icons.Outlined.Settings, "Configurações") },
+                    selected = selectedIndex == 2,
+                    onClick = {
+                        onSelectedIndexChange(2)
+                        navController.navigate(Screen.Config.route)
+                    }
+                )
             }
-        }
+        },
+        // O FloatingActionButton foi removido para dar lugar à barra de navegação
     ) { innerPadding ->
         Box(
             modifier = Modifier
@@ -102,4 +132,4 @@ fun TelaListaEmbarcacoesCliente(
             }
         }
     }
-} 
+}

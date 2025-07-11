@@ -69,35 +69,42 @@ class CadastroEncomendaViewModel @Inject constructor(
     }
 
     fun salvarEncomenda() {
-        val state = _uiState.value
-        println("[DEBUG] Tentando salvar encomenda: $state")
-        if (state.encomenda.isBlank() || state.remetenteCpf.isBlank() || state.destinatarioCpf.isBlank() || state.embarcacaoId.isBlank()) {
-            println("[DEBUG] Campos obrigatórios faltando! Estado: $state")
-            _uiState.value = state.copy(erro = "Preencha todos os campos obrigatórios.", isLoading = false)
+        // Validação inicial
+        if (_uiState.value.encomenda.isBlank() || _uiState.value.remetenteCpf.isBlank() || _uiState.value.destinatarioCpf.isBlank() || _uiState.value.embarcacaoId.isBlank()) {
+            _uiState.value = _uiState.value.copy(erro = "Preencha todos os campos obrigatórios.")
             return
         }
-        _uiState.value = state.copy(isLoading = true, erro = null, cadastroSucesso = false)
+
+        // Inicia o processo de salvamento
+        _uiState.value = _uiState.value.copy(isLoading = true, erro = null, cadastroSucesso = false)
+
+        // Cria o objeto da encomenda a partir do estado ATUAL
+        val estadoAtual = _uiState.value
         val novaEncomenda = Encomenda(
             idEncomenda = gerarIdUnico(),
-            encomenda = state.encomenda,
+            encomenda = estadoAtual.encomenda,
             img = "", // Pode ser implementado upload de imagem depois
-            status = state.status,
-            embarcacaoId = state.embarcacaoId,
-            remetenteCpf = state.remetenteCpf,
-            destinatarioCpf = state.destinatarioCpf
+            status = estadoAtual.status,
+            embarcacaoId = estadoAtual.embarcacaoId,
+            remetenteCpf = estadoAtual.remetenteCpf,
+            destinatarioCpf = estadoAtual.destinatarioCpf
         )
-        println("[DEBUG] Enviando para o repositório: $novaEncomenda")
+
         viewModelScope.launch {
             try {
                 encRepository.addEncomenda(novaEncomenda)
-                println("[DEBUG] Encomenda salva com sucesso!")
-                _uiState.value = state.copy(isLoading = false, cadastroSucesso = true)
+                // CORREÇÃO: Atualiza a partir do estado mais recente
+                _uiState.value = _uiState.value.copy(isLoading = false, cadastroSucesso = true)
             } catch (e: Exception) {
-                println("[DEBUG] Erro ao salvar encomenda: ${e.localizedMessage}")
-                _uiState.value = state.copy(isLoading = false, erro = e.localizedMessage ?: "Erro ao cadastrar encomenda")
+                // CORREÇÃO: Atualiza a partir do estado mais recente
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    erro = e.localizedMessage ?: "Erro ao cadastrar encomenda"
+                )
             }
         }
     }
+
 
     private fun gerarIdUnico(): String {
         return System.currentTimeMillis().toString()
