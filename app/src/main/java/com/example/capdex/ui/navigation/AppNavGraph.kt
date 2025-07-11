@@ -43,7 +43,7 @@ fun AppNavGraph(navController: NavHostController) {
                 authViewModel = authViewModel,
                 onNavigateToLogin = { navController.navigate(Screen.Login.route) },
                 onRegistrationSuccess = { isDono ->
-                    val destination = if (isDono) Screen.Dono.route else Screen.Main.route
+                    val destination = if (isDono) Screen.Dono.route else Screen.EmbarcacoesCliente.route
                     navController.navigate(destination) {
                         popUpTo(navController.graph.findStartDestination().id) { inclusive = true }
                     }
@@ -58,7 +58,7 @@ fun AppNavGraph(navController: NavHostController) {
                 onLoginSuccess = { isDono ->
                     selectedIndex = 0
                     isFabExpanded = false
-                    val destination = if (isDono) Screen.Dono.route else Screen.Main.route
+                    val destination = if (isDono) Screen.Dono.route else Screen.EmbarcacoesCliente.route
                     navController.navigate(destination) {
                         popUpTo(navController.graph.findStartDestination().id) { inclusive = true }
                     }
