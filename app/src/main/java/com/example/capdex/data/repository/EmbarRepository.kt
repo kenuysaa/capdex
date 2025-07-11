@@ -30,7 +30,7 @@ class EmbarRepositoryImpl @Inject constructor(
 ) : EmbarRepository {
 
     companion object {
-        private const val EMBARCACAO_COLLECTION = "embarcacao"
+        private const val EMBARCACAO_COLLECTION = "embarcacoes"
         private const val LOCALIZACAO_SUBCOLLECTION = "loc"
     }
 
