@@ -141,6 +141,9 @@ fun AppNavGraph(navController: NavHostController) {
                 onSelectedIndexChange = { selectedIndex = it }
             )
         }
+        composable(Screen.CriarEncomenda.route) {
+            com.example.capdex.ui.telas.TelaCriarEncomenda(navController = navController)
+        }
 
 
     }

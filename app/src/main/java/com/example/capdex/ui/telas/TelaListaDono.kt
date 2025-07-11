@@ -196,6 +196,10 @@ fun TelaListaDono(
                             text = "Criar Embarcação",
                             onClick = { navController.navigate(Screen.CriarEmbarcacao.route) }
                         )
+                        FabOption(
+                            text = "Cadastrar Encomenda",
+                            onClick = { navController.navigate(Screen.CriarEncomenda.route) }
+                        )
                     }
                 }
             }
