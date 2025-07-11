@@ -80,7 +80,7 @@ fun TelaPacotes(
     viewModelDestinatario: ListaEncomendasDestinatarioViewModel = hiltViewModel()
 ) {
     var tabIndex by remember { mutableStateOf(0) }
-    val tabs = listOf("Enviados", "Recebidos")
+    val tabs = listOf("Enviados", "Pra você")
     val gradient = Brush.verticalGradient(colors = listOf(Color(0xFF3E6340), Color(0xFF8DE9C3), Color(0xFFB3F5DC)))
 
     val authUiState by authViewModel.uiState.collectAsState()
@@ -149,30 +149,41 @@ fun TelaPacotes(
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp)
         ) {
-            TabRow(
-                selectedTabIndex = tabIndex,
-                containerColor = Color.Transparent,
-                contentColor = Color.White,
-                indicator = {},
-                divider = {}
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.Center
             ) {
                 tabs.forEachIndexed { index, title ->
                     val isSelected = tabIndex == index
                     val backgroundColor = if (isSelected) Color(0xFF3E6340) else Color.White.copy(alpha = 0.8f)
                     val textColor = if (isSelected) Color.White else Color.DarkGray
 
-                    Tab(
-                        selected = isSelected,
+                    Button(
                         onClick = { tabIndex = index },
+                        shape = RoundedCornerShape(50),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = backgroundColor,
+                            contentColor = textColor
+                        ),
                         modifier = Modifier
-                            .padding(horizontal = 4.dp, vertical = 8.dp)
-                            .clip(RoundedCornerShape(50))
-                            .background(backgroundColor)
+                            .weight(1f)
+                            .padding(horizontal = 4.dp)
+                            .height(40.dp),
+                        elevation = null
                     ) {
-                        Text(text = title, color = textColor, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp))
+                        Text(
+                            text = title,
+                            color = textColor,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
+                        )
                     }
                 }
             }
+            Spacer(modifier = Modifier.height(8.dp))
 
             val encomendas = if (tabIndex == 0) uiStateRemetente.encomendas else uiStateDestinatario.encomendas
             val isLoading = if (tabIndex == 0) uiStateRemetente.isLoading else uiStateDestinatario.isLoading
