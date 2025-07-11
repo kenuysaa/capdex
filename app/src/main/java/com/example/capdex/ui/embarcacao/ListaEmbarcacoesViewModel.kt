@@ -37,12 +37,16 @@ class ListaEmbarcacoesViewModel @Inject constructor(
     }
 
     fun carregarTodasEmbarcacoes() {
+        println("[DEBUG] Chamou carregarTodasEmbarcacoes")
         _uiState.update { it.copy(isLoading = true, errorMessage = null) }
         viewModelScope.launch {
             try {
                 val lista = embarRepository.getTodasEmbarcacoes()
+                println("[DEBUG] Embarcações retornadas: ${lista.size}")
+                lista.forEach { println("[DEBUG] Embarcação: $it") }
                 _uiState.update { it.copy(embarcacoes = lista, isLoading = false) }
             } catch (e: Exception) {
+                println("[DEBUG] Erro ao buscar embarcações: ${e.localizedMessage}")
                 _uiState.update { it.copy(errorMessage = e.message ?: "Erro desconhecido", isLoading = false) }
             }
         }
