@@ -61,6 +61,7 @@ fun EmbarcacaoDonoItem(
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(nome, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = corNomeEmbarcacao)
+                Text("ID: $id", fontSize = 12.sp, color = Color.Gray) // Exibe o id na interface
                 Text(status, fontSize = 14.sp, color = Color.Gray)
             }
             Button(
@@ -154,6 +155,8 @@ fun TelaListaDono(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
             ) {
+                // Log para debug
+                println("Lista de embarcações: " + uiState.embarcacoes.joinToString { it.idEmbarcacao + ": " + it.nomeEmbarcacao })
                 items(uiState.embarcacoes) { embarcacao ->
                     EmbarcacaoDonoItem(
                         id = embarcacao.idEmbarcacao,

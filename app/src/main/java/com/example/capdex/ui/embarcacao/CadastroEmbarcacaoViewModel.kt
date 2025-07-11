@@ -74,8 +74,8 @@ class CadastroEmbarcacaoViewModel @Inject constructor(
                     imagemUrl = urlDaImagem,
                     // ✅ Campos de setor e senha agora são incluídos
                     nomeSetor = estadoAtual.nomeSetor,
-                    senhaSetor = estadoAtual.senhaSetor
-                    // Adicione proprietarioId se necessário
+                    senhaSetor = estadoAtual.senhaSetor,
+                    proprietarioId = "proprietario123"
                 )
 
                 // Salva no banco de dados
