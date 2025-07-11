@@ -1,5 +1,8 @@
 package com.example.capdex.ui.navigation
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import com.example.capdex.ui.telas.TelaPacotes
 import androidx.compose.runtime.getValue
@@ -26,6 +29,14 @@ import com.example.capdex.ui.telas.TelaEditarEmbarcacao
 import com.example.capdex.ui.telas.TelaListaDono
 import com.example.capdex.data.model.Pacote
 import com.example.capdex.ui.telas.TelaListaEmbarcacoesCliente
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.layout.Box
+import androidx.compose.ui.text.Text
+import com.example.capdex.ui.telas.TelaCriarEncomenda
 
 @Composable
 fun AppNavGraph(navController: NavHostController) {
@@ -66,13 +77,11 @@ fun AppNavGraph(navController: NavHostController) {
             )
         }
 
-        composable(Screen.Main.route) { // ou a rota correspondente
+        composable(Screen.Main.route) {
             val listaEmbarcacoesViewModel = hiltViewModel<ListaEmbarcacoesViewModel>()
             TelaListaEmbarcacoesCliente(
                 navController = navController,
-                viewModel = listaEmbarcacoesViewModel,
-                selectedIndex = selectedIndex, // Passando o estado
-                onSelectedIndexChange = { newIndex -> selectedIndex = newIndex } // Passando a função
+                viewModel = listaEmbarcacoesViewModel
             )
         }
 
@@ -144,10 +153,21 @@ fun AppNavGraph(navController: NavHostController) {
             )
         }
         composable(Screen.CriarEncomenda.route) {
-            com.example.capdex.ui.telas.TelaCriarEncomenda(navController = navController)
+            TelaCriarEncomenda(navController = navController)
         }
         composable(Screen.EmbarcacoesCliente.route) {
-            TelaListaEmbarcacoesCliente(navController = navController)
+            val listaEmbarcacoesViewModel = hiltViewModel<ListaEmbarcacoesViewModel>()
+            TelaListaEmbarcacoesCliente(
+                navController = navController,
+                viewModel = listaEmbarcacoesViewModel,
+                selectedIndex = selectedIndex,
+                onSelectedIndexChange = { selectedIndex = it }
+            )
+        }
+        composable(Screen.Map.route) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("Tela do Mapa", color = Color(0xFF3E6340), fontWeight = FontWeight.Bold, fontSize = 28.sp)
+            }
         }
 
 
