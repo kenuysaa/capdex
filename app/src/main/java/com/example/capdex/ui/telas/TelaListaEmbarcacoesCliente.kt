@@ -8,6 +8,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.outlined.Inventory2
+import androidx.compose.material.icons.outlined.Sailing
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -30,7 +33,9 @@ import com.example.capdex.ui.navigation.Screen
 @Composable
 fun TelaListaEmbarcacoesCliente(
     navController: NavHostController,
-    viewModel: ListaEmbarcacoesViewModel = hiltViewModel()
+    viewModel: ListaEmbarcacoesViewModel = hiltViewModel(),
+    selectedIndex: Int,
+    onSelectedIndexChange: (Int) -> Unit
 ) {
     val uiState = viewModel.uiState.collectAsState().value
 
@@ -55,13 +60,44 @@ fun TelaListaEmbarcacoesCliente(
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Transparent)
             )
         },
+        bottomBar = {
+            NavigationBar(
+                modifier = Modifier
+                    .padding(horizontal = 24.dp, vertical = 16.dp)
+                    .height(68.dp)
+                    .clip(RoundedCornerShape(50)),
+                containerColor = Color.White
+            ) {
+                NavigationBarItem(
+                    icon = { Icon(Icons.Outlined.Sailing, "Embarcações") },
+                    selected = selectedIndex == 0,
+                    onClick = { onSelectedIndexChange(0) }
+                )
+                NavigationBarItem(
+                    icon = { Icon(Icons.Outlined.Inventory2, "Pacotes") },
+                    selected = selectedIndex == 1,
+                    onClick = {
+                        onSelectedIndexChange(1)
+                        navController.navigate(Screen.Carga.route)
+                    }
+                )
+                NavigationBarItem(
+                    icon = { Icon(Icons.Outlined.Settings, "Configurações") },
+                    selected = selectedIndex == 2,
+                    onClick = {
+                        onSelectedIndexChange(2)
+                        navController.navigate(Screen.Config.route)
+                    }
+                )
+            }
+        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { navController.navigate(Screen.Map.route) },
                 containerColor = Color(0xFF3E6340),
                 contentColor = Color.White
             ) {
-                Icon(Icons.Default.LocationOn, contentDescription = "Ver no mapa")
+                Icon(Icons.Filled.LocationOn, contentDescription = "Ver no mapa")
             }
         }
     ) { innerPadding ->
