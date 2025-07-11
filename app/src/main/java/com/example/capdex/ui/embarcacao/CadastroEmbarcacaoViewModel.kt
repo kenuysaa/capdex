@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.capdex.data.model.Embarcacao
+import com.example.capdex.data.repository.AuthRepository
 import com.example.capdex.ui.telas.EmbarcacaoRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,6 +16,7 @@ import javax.inject.Inject
 
 // Estado da UI para esta tela específica
 data class CadastroEmbarcacaoUiState(
+    val proprietarioId: String = "", // Corrigido para o nome correto
     val nomeEmbarcacao: String = "",
     val cnpj: String = "",
     val nomeSetor: String = "",
@@ -27,10 +29,15 @@ data class CadastroEmbarcacaoUiState(
 
 @HiltViewModel
 class CadastroEmbarcacaoViewModel @Inject constructor(
-    private val repository: EmbarcacaoRepository
+    private val repository: EmbarcacaoRepository,
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(CadastroEmbarcacaoUiState())
+    private val _uiState = MutableStateFlow(
+        CadastroEmbarcacaoUiState(
+            proprietarioId = authRepository.getCurrentUserUid() ?: ""
+        )
+    )
     val uiState: StateFlow<CadastroEmbarcacaoUiState> = _uiState
 
     // Funções para a UI notificar mudanças
@@ -48,6 +55,9 @@ class CadastroEmbarcacaoViewModel @Inject constructor(
     }
     fun onImageUriChange(uri: Uri?) {
         _uiState.update { it.copy(imageUri = uri) }
+    }
+    fun onProprietarioIdChange(proprietarioId: String) {
+        _uiState.update { it.copy(proprietarioId = proprietarioId) }
     }
 
     // Função de salvar agora usa os dados do próprio estado
@@ -75,7 +85,7 @@ class CadastroEmbarcacaoViewModel @Inject constructor(
                     // ✅ Campos de setor e senha agora são incluídos
                     nomeSetor = estadoAtual.nomeSetor,
                     senhaSetor = estadoAtual.senhaSetor,
-                    proprietarioId = "proprietario123"
+                    proprietarioId = estadoAtual.proprietarioId
                 )
 
                 // Salva no banco de dados

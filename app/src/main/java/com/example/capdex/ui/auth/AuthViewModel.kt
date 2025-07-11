@@ -26,7 +26,7 @@ data class AuthUiState(
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
-    private val authRepository: AuthRepository,
+    internal val authRepository: AuthRepository,
     private val userRepository: UserRepository
 
 ) : ViewModel() {

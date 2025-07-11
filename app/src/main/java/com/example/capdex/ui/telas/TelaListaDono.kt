@@ -26,8 +26,10 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
+import com.example.capdex.data.repository.AuthRepository
 import com.example.capdex.ui.embarcacao.ListaEmbarcacoesViewModel
 import com.example.capdex.ui.navigation.Screen
+import com.example.capdex.ui.auth.AuthViewModel
 
 @Composable
 fun EmbarcacaoDonoItem(
@@ -84,14 +86,18 @@ fun TelaListaDono(
     selectedIndex: Int,
     onSelectedIndexChange: (Int) -> Unit,
     isFabExpanded: Boolean,
-    onFabExpandedChange: (Boolean) -> Unit
+    onFabExpandedChange: (Boolean) -> Unit,
+    authRepository: AuthRepository = androidx.hilt.navigation.compose.hiltViewModel<AuthViewModel>().authRepository
 ) {
     val viewModel: ListaEmbarcacoesViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsState()
 
-    // Substitua "proprietario123" pelo ID do usuário logado, se necessário
-    LaunchedEffect(Unit) {
-        viewModel.carregarEmbarcacoes("proprietario123")
+    val proprietarioId = authRepository.getCurrentUserUid() ?: ""
+
+    LaunchedEffect(proprietarioId) {
+        if (proprietarioId.isNotEmpty()) {
+            viewModel.carregarEmbarcacoes(proprietarioId)
+        }
     }
 
     val gradient = Brush.verticalGradient(
