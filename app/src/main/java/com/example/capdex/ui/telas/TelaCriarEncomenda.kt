@@ -70,7 +70,38 @@ fun TelaCriarEncomenda(
                 Spacer(modifier = Modifier.height(16.dp))
                 LineTextField(value = uiState.destinatarioCpf, onValueChange = viewModel::onDestinatarioCpfChange, label = "CPF do destinatário", keyboardType = KeyboardType.Number)
                 Spacer(modifier = Modifier.height(16.dp))
-                LineTextField(value = uiState.embarcacaoId, onValueChange = viewModel::onEmbarcacaoIdChange, label = "ID da embarcação")
+                // Dropdown para selecionar embarcação
+                val embarcacoes by viewModel.embarcacoes.collectAsState()
+                var expanded by remember { mutableStateOf(false) }
+                val embarcacaoSelecionada = embarcacoes.find { it.idEmbarcacao == uiState.embarcacaoId }
+                ExposedDropdownMenuBox(
+                    expanded = expanded,
+                    onExpandedChange = { expanded = !expanded }
+                ) {
+                    OutlinedTextField(
+                        value = embarcacaoSelecionada?.nomeEmbarcacao ?: "Selecione a embarcação",
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Embarcação") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
+                        modifier = Modifier.menuAnchor().fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    ExposedDropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        embarcacoes.forEach { embarcacao ->
+                            DropdownMenuItem(
+                                text = { Text(embarcacao.nomeEmbarcacao) },
+                                onClick = {
+                                    viewModel.onEmbarcacaoSelecionada(embarcacao.idEmbarcacao)
+                                    expanded = false
+                                }
+                            )
+                        }
+                    }
+                }
                 Spacer(modifier = Modifier.height(32.dp))
                 Button(
                     onClick = { viewModel.salvarEncomenda() },
