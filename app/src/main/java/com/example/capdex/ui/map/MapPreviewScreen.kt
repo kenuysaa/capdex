@@ -32,6 +32,14 @@ fun MapPreviewScreen(
     val locationPermissionGranted by mapViewModel.locationPermissionGranted.collectAsState()
     val currentLocation by mapViewModel.currentLocation.collectAsState()
     val cameraPositionState = rememberCameraPositionState()
+    val embarcacoesComLocalizacao by mapViewModel.embarcacoesComLocalizacao.collectAsState()
+    val isLoadingEmbarcacoes by mapViewModel.isLoadingEmbarcacoes.collectAsState()
+    val errorEmbarcacoes by mapViewModel.errorEmbarcacoes.collectAsState()
+
+    // Carregar embarcações ao abrir a tela
+    LaunchedEffect(Unit) {
+        mapViewModel.carregarEmbarcacoesNoMapa()
+    }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions(),
@@ -113,7 +121,7 @@ fun MapPreviewScreen(
                         isMyLocationEnabled = locationPermissionGranted
                     )
                 ) {
-                    // Porto Novo
+                    // Marcadores dos portos fixos
                     val portoNovoPosition = LatLng(-3.150333, -58.443555)
                     val portoNovoState = rememberMarkerState(position = portoNovoPosition)
                     MarkerInfoWindow(
@@ -126,7 +134,6 @@ fun MapPreviewScreen(
                         }
                     )
 
-                    // Porto Velho
                     val portoVelhoPosition = LatLng(-3.146670, -58.451048)
                     val portoVelhoState = rememberMarkerState(position = portoVelhoPosition)
                     MarkerInfoWindow(
@@ -138,6 +145,23 @@ fun MapPreviewScreen(
                             true
                         }
                     )
+
+                    // Marcadores das embarcações
+                    embarcacoesComLocalizacao.forEach { embarcacaoComLoc ->
+                        val loc = embarcacaoComLoc.localizacao
+                        if (loc != null) {
+                            val markerState = rememberMarkerState(position = LatLng(loc.latitude, loc.longitude))
+                            MarkerInfoWindow(
+                                state = markerState,
+                                title = embarcacaoComLoc.embarcacao.nomeEmbarcacao,
+                                snippet = "Embarcação: ${embarcacaoComLoc.embarcacao.nomeEmbarcacao}",
+                                onClick = {
+                                    markerState.showInfoWindow()
+                                    true
+                                }
+                            )
+                        }
+                    }
 
                     LaunchedEffect(Unit) {
                         portoNovoState.showInfoWindow()
