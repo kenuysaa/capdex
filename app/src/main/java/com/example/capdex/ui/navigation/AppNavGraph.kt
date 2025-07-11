@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.example.capdex.ui.telas.TelaCriarEncomenda
+import com.example.capdex.ui.map.MapPreviewScreen
 
 @Composable
 fun AppNavGraph(navController: NavHostController) {
@@ -165,9 +166,10 @@ fun AppNavGraph(navController: NavHostController) {
             )
         }
         composable(Screen.Map.route) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Tela do Mapa", color = Color(0xFF3E6340), fontWeight = FontWeight.Bold, fontSize = 28.sp)
-            }
+            MapPreviewScreen(
+                navController = navController,
+                isProprietario = false
+            )
         }
 
 
