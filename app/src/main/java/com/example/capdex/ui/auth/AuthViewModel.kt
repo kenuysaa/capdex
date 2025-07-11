@@ -17,6 +17,7 @@ data class AuthUiState(
     val email: String = "",
     val password: String = "",
     val nomeCompleto: String = "",
+    val cpf: String = "",
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
     val successMessage: String? = null,
@@ -54,6 +55,10 @@ class AuthViewModel @Inject constructor(
         _uiState.update { it.copy(nomeCompleto = nomeCompleto) }
     }
 
+    fun onCpfChanged(cpf: String) {
+        _uiState.update { it.copy(cpf = cpf) }
+    }
+
     fun registerUser(userType: String) {
         _uiState.update { it.copy(isLoading = true, errorMessage = null, successMessage = null, userUid = null, isDono = null) }
         viewModelScope.launch {
@@ -67,7 +72,7 @@ class AuthViewModel @Inject constructor(
                         email = uiState.value.email,
                         nome = uiState.value.nomeCompleto,
                         proprietario = isProprietario,
-                        cpf = ""
+                        cpf = uiState.value.cpf
                     )
                     userRepository.addUsuario(usuario)
                     _uiState.update { currentState ->

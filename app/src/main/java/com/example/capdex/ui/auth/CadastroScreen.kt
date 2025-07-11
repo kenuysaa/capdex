@@ -108,7 +108,7 @@ fun CadastroScreen(
                 Spacer(modifier = Modifier.height(12.dp))
                 CadastroTextField(value = confirmaEmail, onValueChange = { confirmaEmail = it; confirmaEmailError = null }, label = "Confirma e-mail", keyboardType = KeyboardType.Email, isError = confirmaEmailError != null, supportingText = confirmaEmailError)
                 Spacer(modifier = Modifier.height(12.dp))
-                CadastroTextField(value = CPF, onValueChange = { CPF = it }, label = "CPF", keyboardType = KeyboardType.Number, isError = cpfError != null, supportingText = cpfError)
+                CadastroTextField(value = CPF, onValueChange = { CPF = it; authViewModel.onCpfChanged(it) }, label = "CPF", keyboardType = KeyboardType.Number, isError = cpfError != null, supportingText = cpfError)
                 Spacer(modifier = Modifier.height(12.dp))
                 CadastroTextField(value = uiState.password, onValueChange = { authViewModel.onPasswordChanged(it); senhaError = null }, label = "Senha", keyboardType = KeyboardType.Password, visualTransformation = if (senhaVisivel) VisualTransformation.None else PasswordVisualTransformation(), trailingIcon = { val icon = if (senhaVisivel) Icons.Filled.Visibility else Icons.Filled.VisibilityOff; IconButton(onClick = { senhaVisivel = !senhaVisivel }) { Icon(icon, "Toggle senha", tint = corTextoBranco) } }, isError = senhaError != null, supportingText = senhaError)
                 Spacer(modifier = Modifier.height(12.dp))
