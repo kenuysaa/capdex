@@ -25,6 +25,7 @@ import com.example.capdex.ui.telas.TelaCriarRota
 import com.example.capdex.ui.telas.TelaEditarEmbarcacao
 import com.example.capdex.ui.telas.TelaListaDono
 import com.example.capdex.data.model.Pacote
+import com.example.capdex.ui.telas.TelaListaEmbarcacoesCliente
 
 @Composable
 fun AppNavGraph(navController: NavHostController) {
@@ -144,6 +145,9 @@ fun AppNavGraph(navController: NavHostController) {
         }
         composable(Screen.CriarEncomenda.route) {
             com.example.capdex.ui.telas.TelaCriarEncomenda(navController = navController)
+        }
+        composable(Screen.EmbarcacoesCliente.route) {
+            TelaListaEmbarcacoesCliente(navController = navController)
         }
 
 
