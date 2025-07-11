@@ -9,6 +9,9 @@ import com.example.capdex.data.model.Encomenda
 import com.example.capdex.data.repository.EncRepository
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
+import com.example.capdex.data.repository.AuthRepository
+import com.example.capdex.data.repository.EmbarRepository
+import com.example.capdex.data.model.Embarcacao
 
 // Deixando este arquivo limpo para remover os conflitos.
 // A lógica de cadastro de encomenda pode ser implementada aqui no futuro.
@@ -26,10 +29,25 @@ data class CadastroEncomendaUiState(
 
 @HiltViewModel
 class CadastroEncomendaViewModel @Inject constructor(
-    private val encRepository: EncRepository
+    private val encRepository: EncRepository,
+    private val embarRepository: EmbarRepository,
+    private val authRepository: AuthRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(CadastroEncomendaUiState())
     val uiState: StateFlow<CadastroEncomendaUiState> = _uiState
+
+    private val _embarcacoes = MutableStateFlow<List<Embarcacao>>(emptyList())
+    val embarcacoes: StateFlow<List<Embarcacao>> = _embarcacoes
+
+    init {
+        val proprietarioId = authRepository.getCurrentUserUid()
+        if (!proprietarioId.isNullOrBlank()) {
+            viewModelScope.launch {
+                val lista = embarRepository.getEmbarcacoesByProprietario(proprietarioId)
+                _embarcacoes.value = lista
+            }
+        }
+    }
 
     fun onEncomendaChange(valor: String) {
         _uiState.value = _uiState.value.copy(encomenda = valor)
@@ -40,8 +58,8 @@ class CadastroEncomendaViewModel @Inject constructor(
     fun onDestinatarioCpfChange(valor: String) {
         _uiState.value = _uiState.value.copy(destinatarioCpf = valor)
     }
-    fun onEmbarcacaoIdChange(valor: String) {
-        _uiState.value = _uiState.value.copy(embarcacaoId = valor)
+    fun onEmbarcacaoSelecionada(embarcacaoId: String) {
+        _uiState.value = _uiState.value.copy(embarcacaoId = embarcacaoId)
     }
     fun onStatusChange(valor: String) {
         _uiState.value = _uiState.value.copy(status = valor)
