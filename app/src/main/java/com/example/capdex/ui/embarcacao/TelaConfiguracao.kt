@@ -1,4 +1,5 @@
-package com.example.capdex.ui.telas
+package com.example.capdex.ui.embarcacao
+
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -33,7 +34,7 @@ import com.example.capdex.ui.navigation.Screen
 @Composable
 fun TelaConfiguracao(
     navController: NavHostController,
-    // ✅ Esta é a assinatura correta que o AppNavGraph espera
+    // ✅ Assinatura da função corrigida para aceitar os parâmetros
     selectedIndex: Int,
     onSelectedIndexChange: (Int) -> Unit
 ) {
@@ -69,6 +70,7 @@ fun TelaConfiguracao(
                     .clip(RoundedCornerShape(50)),
                 containerColor = Color.White
             ) {
+                // ✅ Barra de navegação usando o estado vindo do AppNavGraph
                 NavigationBarItem(
                     icon = { Icon(Icons.Outlined.Sailing, "Embarcações") },
                     selected = selectedIndex == 0,
@@ -77,14 +79,7 @@ fun TelaConfiguracao(
                         navController.popBackStack()
                     }
                 )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Outlined.Inventory2, "Pacotes") },
-                    selected = selectedIndex == 1,
-                    onClick = {
-                        onSelectedIndexChange(1)
-                        navController.navigate(Screen.Carga.route)
-                    }
-                )
+
                 NavigationBarItem(
                     icon = { Icon(Icons.Outlined.Settings, "Configurações") },
                     selected = selectedIndex == 2,
@@ -101,6 +96,7 @@ fun TelaConfiguracao(
                 .padding(horizontal = 24.dp)
         ) {
             Spacer(modifier = Modifier.height(16.dp))
+
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()

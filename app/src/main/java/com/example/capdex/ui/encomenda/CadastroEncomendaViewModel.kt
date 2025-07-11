@@ -1,87 +1,72 @@
-package com.example.capdex.ui.encomenda
+package com.example.capdex.ui.embarcacao // Ou o pacote onde ele está
 
+import android.net.Uri
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.capdex.data.model.Encomenda
-import com.example.capdex.data.repository.EncRepository
+import com.example.capdex.data.model.Embarcacao
+import com.example.capdex.data.repository.EmbarcacaoRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-// Estado da UI para o cadastro de encomenda
-data class CadastroEncomendaUiState(
-    val encomenda: String = "",
-    val img: String = "",
-    val status: String = "",
-    val embarcacaoId: String = "",
-    val remetenteCpf: String = "",
-    val destinatarioCpf: String = "",
-    val isLoading: Boolean = false,
-    val errorMessage: String? = null,
-    val success: Boolean = false
+// Estado da UI para sabermos se o cadastro foi bem-sucedido
+data class CadastroUiState(
+    val sucesso: Boolean = false,
+    val erro: String? = null
 )
 
 @HiltViewModel
-class CadastroEncomendaViewModel @Inject constructor(
-    private val encRepository: EncRepository
+class CadastroEmbarcacaoViewModel @Inject constructor(
+    private val repository: EmbarcacaoRepository
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow(CadastroEncomendaUiState())
-    val uiState: StateFlow<CadastroEncomendaUiState> = _uiState
 
-    fun onEncomendaChanged(value: String) {
-        _uiState.update { it.copy(encomenda = value) }
-    }
-    fun onImgChanged(value: String) {
-        _uiState.update { it.copy(img = value) }
-    }
-    fun onStatusChanged(value: String) {
-        _uiState.update { it.copy(status = value) }
-    }
-    fun onEmbarcacaoIdChanged(value: String) {
-        _uiState.update { it.copy(embarcacaoId = value) }
-    }
-    fun onRemetenteCpfChanged(value: String) {
-        _uiState.update { it.copy(remetenteCpf = value) }
-    }
-    fun onDestinatarioCpfChanged(value: String) {
-        _uiState.update { it.copy(destinatarioCpf = value) }
-    }
+    private val _uiState = MutableStateFlow(CadastroUiState())
+    val uiState = _uiState.asStateFlow()
 
-    fun cadastrarEncomenda() {
-        val state = _uiState.value
-        if (state.encomenda.isBlank() || state.embarcacaoId.isBlank() || state.remetenteCpf.isBlank() || state.destinatarioCpf.isBlank()) {
-            _uiState.update { it.copy(errorMessage = "Preencha todos os campos obrigatórios.") }
-            return
-        }
-        _uiState.update { it.copy(isLoading = true, errorMessage = null, success = false) }
-        val encomenda = Encomenda(
-            idEncomenda = gerarIdUnico(),
-            encomenda = state.encomenda,
-            img = state.img,
-            status = state.status,
-            embarcacaoId = state.embarcacaoId,
-            remetenteCpf = state.remetenteCpf,
-            destinatarioCpf = state.destinatarioCpf
-        )
+    fun salvarEmbarcacao(
+        nomeEmbarcacao: String,
+        cnpj: String,
+        nomeSetorEncomenda: String,
+        senhaSetorEncomenda: String,
+        imageUri: Uri?
+    ) {
         viewModelScope.launch {
-            try {
-                encRepository.addEncomenda(encomenda)
-                _uiState.update { it.copy(isLoading = false, success = true) }
-            } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, errorMessage = e.localizedMessage ?: "Erro ao cadastrar encomenda") }
+            // TODO: Adicionar validações (campos vazios, senhas não conferem, etc.)
+
+            // Exemplo de como criar o objeto e chamar o repositório
+            val novaEmbarcacao = Embarcacao(
+                // O ID pode ser gerado pelo Firebase ou de outra forma
+                idEmbarcacao = repository.getNovoId(),
+                nomeEmbarcacao = nomeEmbarcacao,
+                cnpj = cnpj,
+                status = "Disponível", // Status inicial padrão
+                // Adicione os novos campos ao seu modelo de dados 'Embarcacao'
+                // nomeSetorEncomenda = nomeSetorEncomenda,
+                // senhaSetorEncomenda = senhaSetorEncomenda,
+                imagemUrl = "" // A URL da imagem será preenchida após o upload
+            )
+
+            // Primeiro, faz o upload da imagem (se houver) e pega a URL
+            val urlDaImagem = imageUri?.let { repository.uploadImagemEmbarcacao(it, novaEmbarcacao.idEmbarcacao) }
+
+            // Atualiza o objeto com a URL da imagem e salva no banco de dados
+            val resultado = repository.addEmbarcacao(novaEmbarcacao.copy(imagemUrl = urlDaImagem ?: ""))
+
+            if (resultado) {
+                _uiState.value = CadastroUiState(sucesso = true)
+            } else {
+                _uiState.value = CadastroUiState(erro = "Falha ao salvar a embarcação.")
             }
         }
     }
 
-    fun resetSuccess() {
-        _uiState.update { it.copy(success = false) }
+    // Função para resetar o estado após a navegação
+    fun resetarEstado() {
+        _uiState.value = CadastroUiState()
     }
-
-    private fun gerarIdUnico(): String {
-        // Pode ser substituído por um gerador de ID mais robusto se necessário
-        return System.currentTimeMillis().toString()
-    }
-} 
+}

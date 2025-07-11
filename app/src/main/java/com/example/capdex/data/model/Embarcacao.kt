@@ -9,5 +9,6 @@ data class Embarcacao(
     val senhaSetor: String = "",
     val pontoPartida: String = "",
     val pontoChegada: String = "",
-    val proprietarioId: String = ""
+    val proprietarioId: String = "",
+    val status: String
 )

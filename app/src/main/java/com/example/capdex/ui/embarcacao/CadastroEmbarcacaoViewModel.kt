@@ -71,7 +71,8 @@ class CadastroEmbarcacaoViewModel @Inject constructor(
             senhaSetor = state.senhaSetor,
             pontoPartida = state.pontoPartida,
             pontoChegada = state.pontoChegada,
-            proprietarioId = proprietarioId
+            proprietarioId = proprietarioId,
+            status = "Disponível"
         )
         viewModelScope.launch {
             try {

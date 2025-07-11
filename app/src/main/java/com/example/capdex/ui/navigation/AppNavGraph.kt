@@ -14,17 +14,19 @@ import com.example.capdex.ui.auth.AuthViewModel
 import com.example.capdex.ui.auth.CadastroScreen
 import com.example.capdex.ui.auth.LoginScreen
 import com.example.capdex.ui.auth.LogoutScreen
+import com.example.capdex.ui.embarcacao.CadastroEmbarcacaoViewModel
 import com.example.capdex.ui.embarcacao.ListaEmbarcacoesViewModel
-import com.example.capdex.ui.telas.TelaConfiguracao
+import com.example.capdex.ui.embarcacao.TelaConfiguracao
 import com.example.capdex.ui.embarcacao.TelaPacotes
 import com.example.capdex.ui.main.MainScreen
+import com.example.capdex.ui.telas.TelaCriarEmbarcacao
+import com.example.capdex.ui.telas.TelaCriarRota
 import com.example.capdex.ui.telas.TelaListaDono
 
 @Composable
 fun AppNavGraph(navController: NavHostController) {
     val authViewModel: AuthViewModel = hiltViewModel()
 
-    // ✅ Estado centralizado que sobrevive à navegação
     var selectedIndex by rememberSaveable { mutableStateOf(0) }
     var isFabExpanded by rememberSaveable { mutableStateOf(false) }
 
@@ -50,7 +52,6 @@ fun AppNavGraph(navController: NavHostController) {
                 authViewModel = authViewModel,
                 onNavigateToCadastro = { navController.navigate(Screen.Cadastro.route) },
                 onLoginSuccess = { isDono ->
-                    // Reseta o estado ao fazer um novo login
                     selectedIndex = 0
                     isFabExpanded = false
                     val destination = if (isDono) Screen.Dono.route else Screen.Main.route
@@ -108,5 +109,17 @@ fun AppNavGraph(navController: NavHostController) {
                 }
             )
         }
+        composable(Screen.CriarEmbarcacao.route) {
+            // ✅ O Hilt vai criar e fornecer o ViewModel automaticamente
+            val cadastroViewModel = hiltViewModel<CadastroEmbarcacaoViewModel>()
+            TelaCriarEmbarcacao(
+                navController = navController,
+                viewModel = cadastroViewModel
+            )
+        }
+        composable(Screen.CriarRota.route) {
+            TelaCriarRota(navController = navController)
+        }
+
     }
 }

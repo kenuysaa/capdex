@@ -41,7 +41,8 @@ class ListaEmbarcacoesViewModel @Inject constructor(
                     senhaSetor = "senha123",
                     pontoPartida = "Parintins",
                     pontoChegada = "Manaus",
-                    proprietarioId = proprietarioId
+                    proprietarioId = proprietarioId,
+                    status = "Disponível"
                 ),
                 Embarcacao(
                     idEmbarcacao = "2",
@@ -52,8 +53,9 @@ class ListaEmbarcacoesViewModel @Inject constructor(
                     senhaSetor = "senha456",
                     pontoPartida = "Pará",
                     pontoChegada = "Manaus",
-                    proprietarioId = proprietarioId
-                ),
+                    proprietarioId = proprietarioId,
+                    status = "Disponível"
+                    ),
                 Embarcacao(
                     idEmbarcacao = "3",
                     nomeEmbarcacao = "Barco CapBarco",
@@ -63,7 +65,8 @@ class ListaEmbarcacoesViewModel @Inject constructor(
                     senhaSetor = "senha789",
                     pontoPartida = "Parintins",
                     pontoChegada = "Manaus",
-                    proprietarioId = proprietarioId
+                    proprietarioId = proprietarioId,
+                    status = "Disponível"
                 )
             )
 

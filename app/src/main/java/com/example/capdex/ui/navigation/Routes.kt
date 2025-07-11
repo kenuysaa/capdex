@@ -9,4 +9,6 @@ sealed class Screen(val route: String) {
     object Carga : Screen("carga")
     object Config : Screen("config")
     object Dono : Screen("dono_lista")
+    object CriarEmbarcacao : Screen("criar_embarcacao")
+    object CriarRota : Screen("criar_rota")
 }
