@@ -1,6 +1,7 @@
 package com.example.capdex.ui.navigation
 
 import androidx.compose.runtime.Composable
+import com.example.capdex.ui.telas.TelaPacotes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -17,7 +18,7 @@ import com.example.capdex.ui.auth.LogoutScreen
 import com.example.capdex.ui.embarcacao.CadastroEmbarcacaoViewModel
 import com.example.capdex.ui.embarcacao.ListaEmbarcacoesViewModel
 import com.example.capdex.ui.embarcacao.TelaConfiguracao
-import com.example.capdex.ui.embarcacao.TelaPacotes
+
 import com.example.capdex.ui.main.MainScreen
 import com.example.capdex.ui.telas.TelaCriarEmbarcacao
 import com.example.capdex.ui.telas.TelaCriarRota
