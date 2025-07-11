@@ -31,6 +31,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.capdex.ui.encomenda.ListaEncomendasRemetenteViewModel
 import com.example.capdex.ui.encomenda.ListaEncomendasDestinatarioViewModel
 import com.example.capdex.ui.auth.AuthViewModel
+import com.example.capdex.ui.telas.PacotesCompletosViewModel
 
 @Composable
 fun PacoteItem(pacote: Pacote, mostrarSetaParaBaixo: Boolean) {
@@ -77,7 +78,8 @@ fun TelaPacotes(
     onSelectedIndexChange: (Int) -> Unit,
     authViewModel: AuthViewModel = hiltViewModel(),
     viewModelRemetente: ListaEncomendasRemetenteViewModel = hiltViewModel(),
-    viewModelDestinatario: ListaEncomendasDestinatarioViewModel = hiltViewModel()
+    viewModelDestinatario: ListaEncomendasDestinatarioViewModel = hiltViewModel(),
+    pacotesCompletosViewModel: PacotesCompletosViewModel = hiltViewModel()
 ) {
     var tabIndex by remember { mutableStateOf(0) }
     val tabs = listOf("Enviados", "Pra você")
@@ -88,6 +90,7 @@ fun TelaPacotes(
 
     val uiStateRemetente by viewModelRemetente.uiState.collectAsState()
     val uiStateDestinatario by viewModelDestinatario.uiState.collectAsState()
+    val pacotes by pacotesCompletosViewModel.pacotes.collectAsState()
 
     // Buscar encomendas ao trocar de aba ou quando o CPF mudar
     LaunchedEffect(tabIndex, cpfUsuario) {
@@ -99,6 +102,15 @@ fun TelaPacotes(
             }
         }
     }
+
+    // Montar pacotes completos ao atualizar encomendas
+    val encomendas = if (tabIndex == 0) uiStateRemetente.encomendas else uiStateDestinatario.encomendas
+    LaunchedEffect(encomendas) {
+        pacotesCompletosViewModel.montarPacotes(encomendas)
+    }
+
+    val isLoading = if (tabIndex == 0) uiStateRemetente.isLoading else uiStateDestinatario.isLoading
+    val errorMessage = if (tabIndex == 0) uiStateRemetente.errorMessage else uiStateDestinatario.errorMessage
 
     Scaffold(
         containerColor = Color.Transparent,
@@ -185,10 +197,6 @@ fun TelaPacotes(
             }
             Spacer(modifier = Modifier.height(8.dp))
 
-            val encomendas = if (tabIndex == 0) uiStateRemetente.encomendas else uiStateDestinatario.encomendas
-            val isLoading = if (tabIndex == 0) uiStateRemetente.isLoading else uiStateDestinatario.isLoading
-            val errorMessage = if (tabIndex == 0) uiStateRemetente.errorMessage else uiStateDestinatario.errorMessage
-
             if (isLoading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = Color.White)
@@ -197,28 +205,16 @@ fun TelaPacotes(
                 Text(errorMessage, color = Color.Red, modifier = Modifier.padding(16.dp))
             } else {
                 LazyColumn(modifier = Modifier.padding(top = 16.dp)) {
-                    if (encomendas.isEmpty()) {
+                    if (pacotes.isEmpty()) {
                         item {
                             Text("Nenhuma encomenda encontrada", color = Color.White, modifier = Modifier.padding(16.dp))
                         }
                     } else {
-                        items(encomendas) { encomenda ->
-                            // Aqui você pode criar um card customizado para a encomenda
-                            // Exemplo simples:
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 8.dp),
-                                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.1f))
-                            ) {
-                                Column(modifier = Modifier.padding(16.dp)) {
-                                    Text("Encomenda: ${encomenda.encomenda}", color = Color.White, fontWeight = FontWeight.Bold)
-                                    Text("Status: ${encomenda.status}", color = Color.White)
-                                    Text("Embarcação: ${encomenda.embarcacaoId}", color = Color.White)
-                                    Text("Remetente: ${encomenda.remetenteCpf}", color = Color.White)
-                                    Text("Destinatário: ${encomenda.destinatarioCpf}", color = Color.White)
-                                }
-                            }
+                        items(pacotes) { pacote ->
+                            PacoteItem(
+                                pacote = pacote,
+                                mostrarSetaParaBaixo = (tabIndex == 1)
+                            )
                         }
                     }
                 }
