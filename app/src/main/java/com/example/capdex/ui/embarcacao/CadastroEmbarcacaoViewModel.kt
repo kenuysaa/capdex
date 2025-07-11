@@ -1,9 +1,11 @@
 package com.example.capdex.ui.embarcacao
 
+import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.capdex.data.model.Embarcacao
-import com.example.capdex.data.repository.EmbarRepository
+import com.example.capdex.ui.telas.EmbarcacaoRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -11,85 +13,88 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-// Estado da UI para o cadastro de embarcação
+// Estado da UI para esta tela específica
 data class CadastroEmbarcacaoUiState(
     val nomeEmbarcacao: String = "",
     val cnpj: String = "",
-    val imagemResId: Int = 0,
     val nomeSetor: String = "",
-    val senhaSetor: String = "",
-    val pontoPartida: String = "",
-    val pontoChegada: String = "",
-    val isLoading: Boolean = false,
-    val errorMessage: String? = null,
-    val success: Boolean = false
+    val senhaSetor: String = "", // Nome corrigido para consistência
+    val imageUri: Uri? = null,
+    val cadastroSucesso: Boolean = false,
+    val erro: String? = null,
+    val isLoading: Boolean = false
 )
 
 @HiltViewModel
 class CadastroEmbarcacaoViewModel @Inject constructor(
-    private val embarRepository: EmbarRepository
+    private val repository: EmbarcacaoRepository
 ) : ViewModel() {
+
     private val _uiState = MutableStateFlow(CadastroEmbarcacaoUiState())
     val uiState: StateFlow<CadastroEmbarcacaoUiState> = _uiState
 
-    fun onNomeEmbarcacaoChanged(value: String) {
-        _uiState.update { it.copy(nomeEmbarcacao = value) }
+    // Funções para a UI notificar mudanças
+    fun onNomeChange(nome: String) {
+        _uiState.update { it.copy(nomeEmbarcacao = nome) }
     }
-    fun onCnpjChanged(value: String) {
-        _uiState.update { it.copy(cnpj = value) }
+    fun onCnpjChange(cnpj: String) {
+        _uiState.update { it.copy(cnpj = cnpj) }
     }
-    fun onImagemResIdChanged(value: Int) {
-        _uiState.update { it.copy(imagemResId = value) }
+    fun onNomeSetorChange(nomeSetor: String) {
+        _uiState.update { it.copy(nomeSetor = nomeSetor) }
     }
-
-    fun onNomeSetorChanged(value: String) {
-        _uiState.update { it.copy(nomeSetor = value) }
+    fun onSenhaChange(senha: String) {
+        _uiState.update { it.copy(senhaSetor = senha) } // Atualiza o campo correto
     }
-    fun onSenhaSetorChanged(value: String) {
-        _uiState.update { it.copy(senhaSetor = value) }
-    }
-    fun onPontoPartidaChanged(value: String) {
-        _uiState.update { it.copy(pontoPartida = value) }
-    }
-    fun onPontoChegadaChanged(value: String) {
-        _uiState.update { it.copy(pontoChegada = value) }
+    fun onImageUriChange(uri: Uri?) {
+        _uiState.update { it.copy(imageUri = uri) }
     }
 
-    fun cadastrarEmbarcacao(proprietarioId: String) {
-        val state = _uiState.value
-        if (state.nomeEmbarcacao.isBlank() || state.cnpj.isBlank()) {
-            _uiState.update { it.copy(errorMessage = "Preencha todos os campos obrigatórios.") }
-            return
-        }
-        _uiState.update { it.copy(isLoading = true, errorMessage = null, success = false) }
-        val embarcacao = Embarcacao(
-            idEmbarcacao = gerarIdUnico(),
-            nomeEmbarcacao = state.nomeEmbarcacao,
-            cnpj = state.cnpj,
-            imagemResId = state.imagemResId,
-            nomeSetor = state.nomeSetor,
-            senhaSetor = state.senhaSetor,
-            pontoPartida = state.pontoPartida,
-            pontoChegada = state.pontoChegada,
-            proprietarioId = proprietarioId,
-            status = "Disponível"
-        )
+    // Função de salvar agora usa os dados do próprio estado
+    fun salvarEmbarcacao() {
+        Log.d("CadastroViewModel", "salvarEmbarcacao() foi chamado")
         viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+
+            val estadoAtual = _uiState.value
+            val id = repository.getNovoId()
+
             try {
-                embarRepository.addEmbarcacao(embarcacao)
-                _uiState.update { it.copy(isLoading = false, success = true) }
+                // Faz o upload da imagem e obtém a URL
+                val urlDaImagem = estadoAtual.imageUri?.let {
+                    repository.uploadImagemEmbarcacao(it, id)
+                } ?: throw Exception("Imagem é obrigatória")
+
+                // Cria o objeto com os dados do estado
+                val novaEmbarcacao = Embarcacao(
+                    idEmbarcacao = id,
+                    nomeEmbarcacao = estadoAtual.nomeEmbarcacao,
+                    cnpj = estadoAtual.cnpj,
+                    status = "Disponível",
+                    imagemUrl = urlDaImagem,
+                    // ✅ Campos de setor e senha agora são incluídos
+                    nomeSetor = estadoAtual.nomeSetor,
+                    senhaSetor = estadoAtual.senhaSetor
+                    // Adicione proprietarioId se necessário
+                )
+
+                // Salva no banco de dados
+                val sucesso = repository.addEmbarcacao(novaEmbarcacao)
+                Log.d("CadastroViewModel", "Resultado do addEmbarcacao: $sucesso")
+
+                if (sucesso) {
+                    _uiState.update { it.copy(isLoading = false, cadastroSucesso = true) }
+                } else {
+                    throw Exception("Falha ao salvar a embarcação no banco de dados.")
+                }
             } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, errorMessage = e.localizedMessage ?: "Erro ao cadastrar embarcação") }
+                Log.e("CadastroViewModel", "Erro ao salvar: ${e.message}", e)
+                _uiState.update { it.copy(isLoading = false, erro = e.message ?: "Ocorreu um erro desconhecido.") }
             }
         }
     }
 
-    fun resetSuccess() {
-        _uiState.update { it.copy(success = false) }
+    fun resetarEstado() {
+        _uiState.value = CadastroEmbarcacaoUiState()
     }
-
-    private fun gerarIdUnico(): String {
-        // Pode ser substituído por um gerador de ID mais robusto se necessário
-        return System.currentTimeMillis().toString()
-    }
-} 
+}

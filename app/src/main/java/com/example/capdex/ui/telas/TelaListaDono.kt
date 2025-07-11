@@ -1,11 +1,6 @@
 package com.example.capdex.ui.telas
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,7 +10,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.Sailing
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.*
@@ -26,23 +20,22 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import com.example.capdex.R
+import coil.compose.AsyncImage
+import com.example.capdex.ui.embarcacao.ListaEmbarcacoesViewModel
 import com.example.capdex.ui.navigation.Screen
 
-// Modelo de dados
-data class EmbarcacaoDono(val id: String, val nome: String, val status: String, val imagemResId: Int)
-
-// Componente para um item da lista
 @Composable
 fun EmbarcacaoDonoItem(
-    embarcacao: EmbarcacaoDono,
-    buttonText: String,
-    onButtonClick: () -> Unit
+    id: String,
+    nome: String,
+    status: String,
+    imagemUrl: String,
+    onEditClick: () -> Unit
 ) {
     val corNomeEmbarcacao = Color(0xFF2E7D32)
 
@@ -57,9 +50,9 @@ fun EmbarcacaoDonoItem(
             modifier = Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Image(
-                painter = painterResource(id = embarcacao.imagemResId),
-                contentDescription = embarcacao.nome,
+            AsyncImage(
+                model = imagemUrl,
+                contentDescription = nome,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .size(80.dp)
@@ -67,23 +60,22 @@ fun EmbarcacaoDonoItem(
             )
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(embarcacao.nome, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = corNomeEmbarcacao)
-                Text(embarcacao.status, fontSize = 14.sp, color = Color.Gray)
+                Text(nome, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = corNomeEmbarcacao)
+                Text(status, fontSize = 14.sp, color = Color.Gray)
             }
             Button(
-                onClick = onButtonClick,
+                onClick = onEditClick,
                 shape = RoundedCornerShape(50),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.LightGray.copy(alpha = 0.5f)
                 )
             ) {
-                Text(buttonText, color = Color.DarkGray)
+                Text("Editar", color = Color.DarkGray)
             }
         }
     }
 }
 
-// Tela Principal do Dono
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TelaListaDono(
@@ -93,11 +85,12 @@ fun TelaListaDono(
     isFabExpanded: Boolean,
     onFabExpandedChange: (Boolean) -> Unit
 ) {
-    val embarcacoes = remember {
-        listOf(
-            EmbarcacaoDono("1", "Barco Príncipe Manoel", "Em viagem", R.drawable.barco_2),
-            EmbarcacaoDono("2", "Barco Adrenalina", "Disponível", R.drawable.barco_1)
-        )
+    val viewModel: ListaEmbarcacoesViewModel = hiltViewModel()
+    val uiState by viewModel.uiState.collectAsState()
+
+    // Substitua "proprietario123" pelo ID do usuário logado, se necessário
+    LaunchedEffect(Unit) {
+        viewModel.carregarEmbarcacoes("proprietario123")
     }
 
     val gradient = Brush.verticalGradient(
@@ -108,7 +101,9 @@ fun TelaListaDono(
         containerColor = Color.Transparent,
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Minhas Embarcações", color = Color.White, fontWeight = FontWeight.Bold) },
+                title = {
+                    Text("Minhas Embarcações", color = Color.White, fontWeight = FontWeight.Bold)
+                },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Transparent)
             )
         },
@@ -127,7 +122,10 @@ fun TelaListaDono(
         },
         bottomBar = {
             NavigationBar(
-                modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp).height(68.dp).clip(RoundedCornerShape(50)),
+                modifier = Modifier
+                    .padding(horizontal = 24.dp, vertical = 16.dp)
+                    .height(68.dp)
+                    .clip(RoundedCornerShape(50)),
                 containerColor = Color.White
             ) {
                 NavigationBarItem(
@@ -146,32 +144,44 @@ fun TelaListaDono(
             }
         }
     ) { innerPadding ->
-        Box(modifier = Modifier.fillMaxSize().background(gradient).padding(innerPadding)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(gradient)
+                .padding(innerPadding)
+        ) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
             ) {
-                items(embarcacoes) { embarcacao ->
+                items(uiState.embarcacoes) { embarcacao ->
                     EmbarcacaoDonoItem(
-                        embarcacao = embarcacao,
-                        buttonText = "Editar",
-                        onButtonClick = { /*TODO: Ação de editar*/ }
+                        id = embarcacao.idEmbarcacao,
+                        nome = embarcacao.nomeEmbarcacao,
+                        status = embarcacao.status,
+                        imagemUrl = embarcacao.imagemUrl,
+                        onEditClick = {
+                            navController.navigate(Screen.EditarEmbarcacao.createRoute(embarcacao.idEmbarcacao))
+                        }
                     )
                 }
             }
 
             Column(
-                modifier = Modifier.fillMaxSize().padding(end = 16.dp, bottom = 90.dp),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(end = 16.dp, bottom = 90.dp),
                 horizontalAlignment = Alignment.End,
                 verticalArrangement = Arrangement.Bottom
             ) {
                 AnimatedVisibility(visible = isFabExpanded) {
-                    Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Column(
+                        horizontalAlignment = Alignment.End,
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
                         FabOption(
                             text = "Criar Rota",
-                            onClick = {
-                                navController.navigate(Screen.CriarRota.route)
-                            }
+                            onClick = { navController.navigate(Screen.CriarRota.route) }
                         )
                         FabOption(
                             text = "Criar Embarcação",
@@ -184,7 +194,6 @@ fun TelaListaDono(
     }
 }
 
-// Componente auxiliar para as opções do FAB
 @Composable
 fun FabOption(text: String, onClick: () -> Unit) {
     Row(
@@ -199,10 +208,7 @@ fun FabOption(text: String, onClick: () -> Unit) {
             contentColor = Color(0xFF3E6340),
             modifier = Modifier.size(48.dp)
         ) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = text
-            )
+            Icon(imageVector = Icons.Default.Add, contentDescription = text)
         }
     }
 }

@@ -36,7 +36,7 @@ fun TelaPacotes(
 
     Scaffold(
         containerColor = Color.Transparent,
-        topBar = {}, // ❌ Sem toolbar conforme solicitado
+        topBar = {},
         bottomBar = {
             NavigationBar(
                 modifier = Modifier

@@ -24,18 +24,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.example.capdex.data.model.Pacote
 import com.example.capdex.ui.navigation.Screen
+import com.example.capdex.data.model.PacotesViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 
-// Modelo de dados para cada pacote
-data class Pacote(
-    val id: Int,
-    val destinatario: String,
-    val nomeBarco: String,
-    val destino: String,
-    val tempoRestante: String
-)
-
-// Item individual da lista de pacotes
 @Composable
 fun PacoteItem(pacote: Pacote, mostrarSetaParaBaixo: Boolean) {
     val corNomePessoa = Color.White
@@ -73,26 +66,16 @@ fun PacoteItem(pacote: Pacote, mostrarSetaParaBaixo: Boolean) {
     }
 }
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TelaPacotes(
     navController: NavHostController,
     selectedIndex: Int,
-    onSelectedIndexChange: (Int) -> Unit
+    onSelectedIndexChange: (Int) -> Unit,
+    viewModel: PacotesViewModel = hiltViewModel()
 ) {
-    val listaDePacotesEnviados = remember {
-        listOf(
-            Pacote(1, "Maria Cecilia Brito", "Barco Correa Filho", "Manaus", "15h:43m"),
-            Pacote(2, "João Alfredo", "Barco Manoel", "Itacoatiara", "10h:12m"),
-        )
-    }
-    val listaDePacotesRecebidos = remember {
-        listOf(
-            Pacote(3, "Carlos Eduardo", "Lancha Rápida", "Codajás", "3h:20m"),
-            Pacote(4, "Fernanda Souza", "Ferry Boat", "Coari", "8h:15m")
-        )
-    }
+    val enviados by viewModel.pacotesEnviados.collectAsState()
+    val recebidos by viewModel.pacotesRecebidos.collectAsState()
 
     var tabIndex by remember { mutableStateOf(0) }
     val tabs = listOf("Enviados", "Para você")
@@ -141,7 +124,11 @@ fun TelaPacotes(
         }
     ) { innerPadding ->
         Column(
-            modifier = Modifier.fillMaxSize().background(gradient).padding(innerPadding).padding(horizontal = 16.dp)
+            modifier = Modifier
+                .fillMaxSize()
+                .background(gradient)
+                .padding(innerPadding)
+                .padding(horizontal = 16.dp)
         ) {
             TabRow(
                 selectedTabIndex = tabIndex,
@@ -169,9 +156,16 @@ fun TelaPacotes(
             }
 
             LazyColumn(modifier = Modifier.padding(top = 16.dp)) {
-                val pacotesParaExibir = if (tabIndex == 0) listaDePacotesEnviados else listaDePacotesRecebidos
-                items(pacotesParaExibir) { pacote ->
-                    PacoteItem(pacote = pacote, mostrarSetaParaBaixo = (tabIndex == 1))
+                val pacotesParaExibir = if (tabIndex == 0) enviados else recebidos
+
+                if (pacotesParaExibir.isEmpty()) {
+                    item {
+                        Text("Nenhum pacote encontrado", color = Color.White, modifier = Modifier.padding(16.dp))
+                    }
+                } else {
+                    items(pacotesParaExibir) { pacote ->
+                        PacoteItem(pacote = pacote, mostrarSetaParaBaixo = (tabIndex == 1))
+                    }
                 }
             }
         }

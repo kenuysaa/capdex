@@ -41,55 +41,134 @@ import com.example.capdex.ui.embarcacao.CadastroEmbarcacaoViewModel
 @Composable
 fun TelaCriarEmbarcacao(
     navController: NavHostController,
-    // ✅ 1. RECEBENDO O VIEWMODEL
     viewModel: CadastroEmbarcacaoViewModel = hiltViewModel()
 ) {
-    // ... seus 'remember' para os campos ...
-    var nomeEmbarcacao by remember { mutableStateOf("") }
-    var cnpj by remember { mutableStateOf("") }
-    var imageUri by remember { mutableStateOf<Uri?>(null) }
-    var nomeSetor by remember { mutableStateOf("") }
-    var senha by remember { mutableStateOf("") }
-    var confirmaSenha by remember { mutableStateOf("") }
-    // ...
-
-    // ✅ 2. OBSERVANDO O ESTADO DO VIEWMODEL
     val uiState by viewModel.uiState.collectAsState()
+    var senhaVisivel by rememberSaveable { mutableStateOf(false) }
+    var confirmaSenha by rememberSaveable { mutableStateOf("") }
+    var confirmaSenhaVisivel by rememberSaveable { mutableStateOf(false) }
 
-    // Lógica para navegar de volta quando o cadastro for bem-sucedido
-    LaunchedEffect(uiState.sucesso) {
-        if (uiState.sucesso) {
-            navController.popBackStack() // Volta para a tela anterior
-            viewModel.resetarEstado() // Limpa o estado para não navegar de novo
+    val singlePhotoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri -> viewModel.onImageUriChange(uri) }
+    )
+
+    LaunchedEffect(uiState.cadastroSucesso) {
+        if (uiState.cadastroSucesso) {
+            navController.popBackStack()
+            viewModel.resetarEstado()
         }
     }
 
-    // ... o resto do seu Scaffold e layout ...
     Box(modifier = Modifier.fillMaxSize().background(Brush.verticalGradient(
         colors = listOf(Color(0xFF3E6340), Color(0xFF8DE9C3), Color(0xFFB3F5DC))
     ))) {
         Scaffold(
-            // ...
-            // ✅ 3. ATUALIZANDO O BOTÃO "CRIAR"
-            Button(
-                onClick = {
-                    viewModel.salvarEmbarcacao(
-                        nomeEmbarcacao = nomeEmbarcacao,
-                        cnpj = cnpj,
-                        nomeSetorEncomenda = nomeSetor,
-                        senhaSetorEncomenda = senha,
-                        imageUri = imageUri
-                    )
-                },
-                // ...
-            ) {
-                Text("Criar", /*...*/)
+            containerColor = Color.Transparent,
+            topBar = {
+                CenterAlignedTopAppBar(
+                    title = { Text("Criar Embarcações", color = Color.White, fontWeight = FontWeight.Bold) },
+                    navigationIcon = {
+                        IconButton(onClick = { navController.popBackStack() }) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Voltar", tint = Color.White)
+                        }
+                    },
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Transparent)
+                )
             }
-            // ...
-        )
+        ) { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(innerPadding)
+                    .padding(horizontal = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(modifier = Modifier.height(32.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(1f)
+                        .clip(RoundedCornerShape(24.dp))
+                        .border(2.dp, Color.White.copy(alpha = 0.5f), RoundedCornerShape(24.dp))
+                        .background(Color.White.copy(alpha = 0.2f))
+                        .clickable {
+                            singlePhotoPickerLauncher.launch(
+                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                            )
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (uiState.imageUri != null) {
+                        AsyncImage(
+                            model = uiState.imageUri,
+                            contentDescription = "Imagem da Embarcação",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Outlined.Image,
+                            contentDescription = "Selecionar Imagem",
+                            tint = Color.White.copy(alpha = 0.7f),
+                            modifier = Modifier.size(80.dp)
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(24.dp))
+                LineTextField(value = uiState.nomeEmbarcacao, onValueChange = viewModel::onNomeChange, label = "Nome da embarcação")
+                Spacer(modifier = Modifier.height(16.dp))
+                LineTextField(value = uiState.cnpj, onValueChange = viewModel::onCnpjChange, label = "CNPJ")
+                Spacer(modifier = Modifier.height(16.dp))
+                LineTextField(value = uiState.nomeSetor, onValueChange = viewModel::onNomeSetorChange, label = "Nome do setor de encomenda")
+                Spacer(modifier = Modifier.height(16.dp))
+                LineTextField(
+                    value = uiState.senhaSetor,
+                    onValueChange = viewModel::onSenhaChange,
+                    label = "Senha",
+                    visualTransformation = if (senhaVisivel) VisualTransformation.None else PasswordVisualTransformation(),
+                    keyboardType = KeyboardType.Password,
+                    trailingIcon = {
+                        val icon = if (senhaVisivel) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                        IconButton(onClick = { senhaVisivel = !senhaVisivel }) {
+                            Icon(icon, contentDescription = "Toggle senha", tint = Color(0xFF3E6340))
+                        }
+                    }
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                LineTextField(
+                    value = confirmaSenha,
+                    onValueChange = { confirmaSenha = it },
+                    label = "Confirme sua senha",
+                    visualTransformation = if (confirmaSenhaVisivel) VisualTransformation.None else PasswordVisualTransformation(),
+                    keyboardType = KeyboardType.Password,
+                    trailingIcon = {
+                        val icon = if (confirmaSenhaVisivel) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                        IconButton(onClick = { confirmaSenhaVisivel = !confirmaSenhaVisivel }) {
+                            Icon(icon, contentDescription = "Toggle confirma senha", tint = Color(0xFF3E6340))
+                        }
+                    }
+                )
+                Spacer(modifier = Modifier.height(32.dp))
+                Button(
+                    onClick = { viewModel.salvarEmbarcacao() },
+                    enabled = !uiState.isLoading,
+                    modifier = Modifier.fillMaxWidth().height(50.dp),
+                    shape = RoundedCornerShape(50),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.White)
+                ) {
+                    if (uiState.isLoading) {
+                        CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color(0xFF3E6340))
+                    } else {
+                        Text("Criar", color = Color(0xFF3E6340), fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    }
+                }
+                Spacer(modifier = Modifier.height(32.dp))
+            }
+        }
     }
 }
-
 @Composable
 fun LineTextField(
     value: String,

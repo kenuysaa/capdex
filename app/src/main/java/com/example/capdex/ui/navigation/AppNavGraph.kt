@@ -21,7 +21,9 @@ import com.example.capdex.ui.embarcacao.TelaPacotes
 import com.example.capdex.ui.main.MainScreen
 import com.example.capdex.ui.telas.TelaCriarEmbarcacao
 import com.example.capdex.ui.telas.TelaCriarRota
+import com.example.capdex.ui.telas.TelaEditarEmbarcacao
 import com.example.capdex.ui.telas.TelaListaDono
+import com.example.capdex.data.model.Pacote
 
 @Composable
 fun AppNavGraph(navController: NavHostController) {
@@ -120,6 +122,26 @@ fun AppNavGraph(navController: NavHostController) {
         composable(Screen.CriarRota.route) {
             TelaCriarRota(navController = navController)
         }
+
+        composable(Screen.EditarEmbarcacao.route) { backStackEntry ->
+            val embarcacaoId = backStackEntry.arguments?.getString("embarcacaoId")
+            if (embarcacaoId != null) {
+                TelaEditarEmbarcacao(
+                    navController = navController,
+                    embarcacaoId = embarcacaoId
+                )
+            } else {
+                navController.popBackStack()
+            }
+        }
+        composable(Screen.Pacotes.route) {
+            TelaPacotes(
+                navController = navController,
+                selectedIndex = selectedIndex,
+                onSelectedIndexChange = { selectedIndex = it }
+            )
+        }
+
 
     }
 }

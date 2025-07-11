@@ -1,6 +1,7 @@
 package com.example.capdex.ui.telas
 
 import android.net.Uri
+import android.util.Log
 import com.example.capdex.data.model.Embarcacao
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
@@ -43,10 +44,11 @@ class EmbarcacaoRepository @Inject constructor(
     suspend fun uploadImagemEmbarcacao(imageUri: Uri, embarcacaoId: String): String? {
         return try {
             val storageRef = storage.reference.child("imagens_embarcacoes/$embarcacaoId.jpg")
+            Log.d("FirebaseUpload", "URI recebido: $imageUri")
             storageRef.putFile(imageUri).await() // Envia o arquivo
             storageRef.downloadUrl.await().toString() // Pega a URL pública da imagem
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e("FirebaseUpload", "Erro ao fazer upload da imagem", e)
             null
         }
     }

@@ -1,5 +1,14 @@
 import java.util.Properties
 
+plugins {
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.dagger.hilt)
+    alias(libs.plugins.ksp)
+    id("com.google.gms.google-services")
+}
+
 val localPropertiesFile = rootProject.file("local.properties")
 val localProperties = Properties()
 
@@ -7,15 +16,6 @@ if (localPropertiesFile.exists()) {
     localPropertiesFile.inputStream().use { stream ->
         localProperties.load(stream)
     }
-}
-
-plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
-    id("com.google.gms.google-services") // Add the Google services Gradle plugin
-    alias(libs.plugins.dagger.hilt)
-    alias(libs.plugins.ksp)
 }
 
 android {
@@ -28,13 +28,11 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
-
+        multiDexEnabled = true
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         val mapsApiKey = localProperties.getProperty("googleMapsApiKey") ?: ""
         manifestPlaceholders["com.google.android.geo.API_KEY"] = mapsApiKey
-
-        multiDexEnabled = true
     }
 
     buildTypes {
@@ -46,14 +44,17 @@ android {
             )
         }
     }
+
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
     kotlinOptions {
         jvmTarget = "11"
     }
+
     buildFeatures {
         compose = true
     }
@@ -80,8 +81,12 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.androidx.navigation.compose)
-    implementation (libs.androidx.material.icons.extended)
+    implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.appcompat)
+
+    // Room
+    implementation("androidx.room:room-runtime:2.6.1")
+    ksp("androidx.room:room-compiler:2.6.1")
 
     // Dagger Hilt
     implementation(libs.dagger.hilt)
