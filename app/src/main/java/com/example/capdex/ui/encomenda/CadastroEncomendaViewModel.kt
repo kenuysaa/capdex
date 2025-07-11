@@ -70,7 +70,9 @@ class CadastroEncomendaViewModel @Inject constructor(
 
     fun salvarEncomenda() {
         val state = _uiState.value
+        println("[DEBUG] Tentando salvar encomenda: $state")
         if (state.encomenda.isBlank() || state.remetenteCpf.isBlank() || state.destinatarioCpf.isBlank() || state.embarcacaoId.isBlank()) {
+            println("[DEBUG] Campos obrigatórios faltando! Estado: $state")
             _uiState.value = state.copy(erro = "Preencha todos os campos obrigatórios.", isLoading = false)
             return
         }
@@ -84,11 +86,14 @@ class CadastroEncomendaViewModel @Inject constructor(
             remetenteCpf = state.remetenteCpf,
             destinatarioCpf = state.destinatarioCpf
         )
+        println("[DEBUG] Enviando para o repositório: $novaEncomenda")
         viewModelScope.launch {
             try {
                 encRepository.addEncomenda(novaEncomenda)
+                println("[DEBUG] Encomenda salva com sucesso!")
                 _uiState.value = state.copy(isLoading = false, cadastroSucesso = true)
             } catch (e: Exception) {
+                println("[DEBUG] Erro ao salvar encomenda: ${e.localizedMessage}")
                 _uiState.value = state.copy(isLoading = false, erro = e.localizedMessage ?: "Erro ao cadastrar encomenda")
             }
         }
